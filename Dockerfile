@@ -44,11 +44,15 @@ WORKDIR /var/www/laravel
 COPY . .
 
 # Install dependencies and Octane
-RUN composer install \
-    && php artisan octane:install --server=roadrunner
+#RUN composer install \
+ #   && php artisan octane:install --server=roadrunner
+
+RUN git config --global --add safe.directory /var/www/laravel
+
 
 # Expose port
 EXPOSE 8000
 
 # Start Octane with --watch
-CMD ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--watch"]
+#CMD ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--watch"]
+CMD ["sh","-c","composer install && php artisan key:generate --force || true && php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 --watch"]
