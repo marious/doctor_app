@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Users\Events\UserRegistered;
+use Modules\Users\Listeners\SendOtpVerification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(
+            UserRegistered::class,
+            SendOtpVerification::class,
+        );
     }
 }

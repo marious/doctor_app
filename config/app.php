@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'otp_mode' => env('OTP_MODE', 'test'),
 ];
