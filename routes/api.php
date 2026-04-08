@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\OtpSendController;
+use App\Http\Controllers\Api\PatientTrackingController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Middleware\ValidateHeadersMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -23,5 +24,9 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::post('login', 'login');
             Route::post('logout', 'logout')->middleware('auth:sanctum');
         });
+    });
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('patient-tracking/store', [PatientTrackingController::class, 'store']);
     });
 });
