@@ -15,12 +15,15 @@ class UserResource extends CustomResource
             'name' => $this->resource->name,
             'email' => $this->resource->email,
             'phone' => $this->resource->phone,
+            'age' => $this->resource->age,
             'blood_group' => $this->resource->blood_group,
             'marital_status' => $this->resource->marital_status,
             'address' => $this->resource->address,
             'date_of_marriage' => $this->resource->date_of_marriage,
             'husband_name' => $this->resource->husband_name,
             'emergency_number' => $this->resource->emergency_number,
+            'biometric_enabled' => $this->resource->biometric_enabled,
+            'notification_enabled' => $this->resource->notification_enabled,
             'auth_token' => $this->resource->auth_token,
         ];
     }

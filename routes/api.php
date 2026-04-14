@@ -30,6 +30,21 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('patient-tracking/store', [PatientTrackingController::class, 'store']);
 
+        //--------------------------------------------------- Profile & Settings -------------------------------------------
+        Route::prefix('profile')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
+            Route::put('/', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+            Route::put('/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
+            Route::put('/settings', [\App\Http\Controllers\Api\ProfileController::class, 'updateSettings']);
+        });
+
+        //--------------------------------------------------- Treatments ---------------------------------------------------
+        Route::prefix('treatment')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\TreatmentController::class, 'index']);
+            Route::get('/tracker', [\App\Http\Controllers\Api\TreatmentController::class, 'tracker']);
+            Route::post('/tracker/log', [\App\Http\Controllers\Api\TreatmentController::class, 'logStatus']);
+        });
+
         //--------------------------------------------------- Appointments--------------------------------------------------
         Route::prefix('appointment')->group(function () {
             // List appointments (past + next upcoming)
