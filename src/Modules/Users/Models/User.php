@@ -32,7 +32,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $fillable = [
         'name', 'email', 'password', 'email_verified_at', 'role_id', 'age', 'blood_group', 'marital_status', 'date_of_marriage', 'husband_name',
-        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'medical_history',
+        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'medical_history', 'settings',
     ];
 
     protected $hidden = [
@@ -47,6 +47,7 @@ class User extends Authenticatable implements HasMedia
         'notification_enabled' => 'boolean',
         'biometric_enabled' => 'boolean',
         'medical_history' => 'array',
+        'settings' => 'array',
     ];
 
     public function getDateOfMarriageAttribute($value)

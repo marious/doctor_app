@@ -66,7 +66,14 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
-        $user->update($request->validated());
+        $validated = $request->validated();
+        
+        // Merge the incoming JSON settings with existing one
+        if (isset($validated['settings'])) {
+            $validated['settings'] = array_merge($user->settings ?? [], $validated['settings']);
+        }
+        
+        $user->update($validated);
 
         return response()->json([
             'status' => true,

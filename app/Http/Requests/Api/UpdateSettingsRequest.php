@@ -22,8 +22,19 @@ class UpdateSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'notification_enabled' => ['sometimes', 'boolean'],
-            'biometric_enabled' => ['sometimes', 'boolean'],
+            // 'notification_enabled' => ['sometimes', 'boolean'],
+            // 'biometric_enabled' => ['sometimes', 'boolean'],
+            'settings' => ['sometimes', 'array'],
+            'settings.two_factor_auth' => ['sometimes', 'boolean'],
+            'settings.appointment_reminders' => ['sometimes', 'boolean'],
+            'settings.medication_reminders' => ['sometimes', 'boolean'],
+            'settings.pregnancy_updates' => ['sometimes', 'boolean'],
+            'settings.period_alerts' => ['sometimes', 'boolean'],
+            'settings.push_notifications' => ['sometimes', 'boolean'],
+            'settings.email_notifications' => ['sometimes', 'boolean'],
+            'settings.lang' => ['sometimes', 'string'],
+            'settings.biometric_login' => ['sometimes', 'boolean'],
+            'settings.app_lock' => ['sometimes', 'boolean'],
         ];
     }
 }

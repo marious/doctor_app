@@ -36,7 +36,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::post('/upload-avatar', [\App\Http\Controllers\Api\UploadAvatarController::class, 'uploadAvatar']);
             Route::post('/', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
             Route::post('/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
-            Route::put('/settings', [\App\Http\Controllers\Api\ProfileController::class, 'updateSettings']);
+            Route::post('/settings', [\App\Http\Controllers\Api\ProfileController::class, 'updateSettings']);
             Route::post('/delete-account', [\App\Http\Controllers\Api\ProfileController::class, 'destroy']);
         });
 
