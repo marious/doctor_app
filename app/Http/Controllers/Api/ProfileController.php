@@ -100,4 +100,49 @@ class ProfileController extends Controller
             'message' => __('Account deleted successfully'),
         ]);
     }
+
+    /**
+     * Get all active devices (tokens) for the authenticated user.
+     */
+    public function devices(): JsonResponse
+    {
+        $devices = auth()->user()->tokens()
+            ->select('id', 'name', 'last_used_at', 'created_at')
+            ->orderBy('last_used_at', 'desc')
+            ->get()
+            ->map(function ($token) {
+                return [
+                    'id' => $token->id,
+                    'name' => $token->name,
+                    'last_used_at' => $token->last_used_at ? $token->last_used_at->format('Y-m-d H:i:s') : null,
+                    'created_at' => $token->created_at ? $token->created_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'message' => __('Devices retrieved successfully'),
+            'data' => $devices,
+        ]);
+    }
+
+    /**
+     * Revoke access for a specific device (token).
+     */
+    public function revokeDevice($tokenId): JsonResponse
+    {
+        $deleted = auth()->user()->tokens()->where('id', $tokenId)->delete();
+
+        if (!$deleted) {
+            return response()->json([
+                'status' => false,
+                'message' => __('Device not found or already removed'),
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => __('Device disconnected successfully'),
+        ]);
+    }
 }

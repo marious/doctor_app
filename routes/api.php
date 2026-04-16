@@ -16,6 +16,9 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         Route::post('resend', 'resend');
     });
 
+    // General App Informational Pages
+    Route::get('app-info', [\App\Http\Controllers\Api\AppInfoController::class, 'index']);
+
     Route::prefix('auth')->group(function () {
         Route::controller(RegisterController::class)->group(function () {
             Route::post('register', 'register');
@@ -38,6 +41,9 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::post('/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
             Route::post('/settings', [\App\Http\Controllers\Api\ProfileController::class, 'updateSettings']);
             Route::post('/delete-account', [\App\Http\Controllers\Api\ProfileController::class, 'destroy']);
+            
+            Route::get('/devices', [\App\Http\Controllers\Api\ProfileController::class, 'devices']);
+            Route::post('/devices/{tokenId}', [\App\Http\Controllers\Api\ProfileController::class, 'revokeDevice']);
         });
 
         //--------------------------------------------------- Treatments ---------------------------------------------------

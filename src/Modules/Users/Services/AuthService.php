@@ -80,7 +80,8 @@ class AuthService
 
         // Create token with expiration
         $expiresAt = Carbon::now()->addDays(120);
-        $accessToken = $user->createToken($this->generateDeviceName(), ['*'], $expiresAt);
+        $deviceName = $dto->deviceName ?? $this->generateDeviceName();
+        $accessToken = $user->createToken($deviceName, ['*'], $expiresAt);
         $user->auth_token = $accessToken->plainTextToken;
         return $user;
     }
