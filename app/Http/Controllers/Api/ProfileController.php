@@ -21,7 +21,7 @@ class ProfileController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Profile retrieved successfully',
+            'message' => __('Profile retrieved successfully'),
             'data' => new UserResource($user),
         ]);
     }
@@ -37,7 +37,7 @@ class ProfileController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Profile updated successfully',
+            'message' => __('Profile updated successfully'),
             'data' => new UserResource($user->refresh()),
         ]);
     }
@@ -55,7 +55,7 @@ class ProfileController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Password updated successfully',
+            'message' => __('Password updated successfully'),
         ]);
     }
 
@@ -70,8 +70,27 @@ class ProfileController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Settings updated successfully',
+            'message' => __('Settings updated successfully'),
             'data' => new UserResource($user->refresh()),
+        ]);
+    }
+
+    /**
+     * Delete the authenticated user's account.
+     */
+    public function destroy(): JsonResponse
+    {
+        $user = auth()->user();
+
+        // Revoke all tokens to log them out
+        $user->tokens()->delete();
+
+        // Soft delete the user
+        $user->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => __('Account deleted successfully'),
         ]);
     }
 }

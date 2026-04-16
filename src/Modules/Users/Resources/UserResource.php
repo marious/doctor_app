@@ -3,6 +3,7 @@
 namespace Modules\Users\Resources;
 
 use Illuminate\Http\Request;
+use Modules\Core\Resources\MediaResource;
 use Modules\Core\CustomResource;
 
 class UserResource extends CustomResource
@@ -24,6 +25,8 @@ class UserResource extends CustomResource
             'emergency_number' => $this->resource->emergency_number,
             'biometric_enabled' => $this->resource->biometric_enabled,
             'notification_enabled' => $this->resource->notification_enabled,
+            'avatar' => MediaResource::make($this->resource->getMedia('avatar')->last() ?? []),
+            'medical_history' => $this->resource->medical_history ?? [],
             'auth_token' => $this->resource->auth_token,
         ];
     }

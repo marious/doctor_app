@@ -32,6 +32,8 @@ class UpdateProfileRequest extends FormRequest
             'emergency_number' => ['nullable', 'string', 'max:20'],
             'date_of_marriage' => ['nullable', 'date', 'required_if:marital_status,married'],
             'husband_name' => ['nullable', 'string', 'max:255', 'required_if:marital_status,married'],
+            'medical_history' => ['nullable', 'array'],
+            'medical_history.*' => ['string'],
         ];
     }
 }

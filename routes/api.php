@@ -33,9 +33,11 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         //--------------------------------------------------- Profile & Settings -------------------------------------------
         Route::prefix('profile')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
-            Route::put('/', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
-            Route::put('/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
+            Route::post('/upload-avatar', [\App\Http\Controllers\Api\UploadAvatarController::class, 'uploadAvatar']);
+            Route::post('/', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+            Route::post('/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
             Route::put('/settings', [\App\Http\Controllers\Api\ProfileController::class, 'updateSettings']);
+            Route::post('/delete-account', [\App\Http\Controllers\Api\ProfileController::class, 'destroy']);
         });
 
         //--------------------------------------------------- Treatments ---------------------------------------------------

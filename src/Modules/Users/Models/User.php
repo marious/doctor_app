@@ -5,6 +5,8 @@ namespace Modules\Users\Models;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 /*
  * @property string $name
@@ -24,13 +26,13 @@ use Laravel\Sanctum\HasApiTokens;
  * @property boolean $active
  */
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, SoftDeletes;
+    use HasApiTokens, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'name', 'email', 'password', 'email_verified_at', 'role_id', 'age', 'blood_group', 'marital_status', 'date_of_marriage', 'husband_name',
-        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active',
+        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'medical_history',
     ];
 
     protected $hidden = [
@@ -44,6 +46,7 @@ class User extends Authenticatable
         'active' => 'boolean',
         'notification_enabled' => 'boolean',
         'biometric_enabled' => 'boolean',
+        'medical_history' => 'array',
     ];
 
     public function getDateOfMarriageAttribute($value)
