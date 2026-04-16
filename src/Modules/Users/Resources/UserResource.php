@@ -38,6 +38,11 @@ class UserResource extends CustomResource
                 'lang' => 'en',
             ], $this->resource->settings ?? []),
             'avatar' => MediaResource::make($this->resource->getMedia('avatar')->last() ?? []),
+            'medical_reports' => [
+                'ultrasound_findings' => MediaResource::collection($this->resource->getMedia('ultrasound_findings')),
+                'lab_results' => MediaResource::collection($this->resource->getMedia('lab_results')),
+                'pelvic_examination' => MediaResource::collection($this->resource->getMedia('pelvic_examination')),
+            ],
             'medical_history' => $this->resource->medical_history ?? [],
             'auth_token' => $this->resource->auth_token,
         ];

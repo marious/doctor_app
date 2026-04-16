@@ -37,6 +37,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         Route::prefix('profile')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
             Route::post('/upload-avatar', [\App\Http\Controllers\Api\UploadAvatarController::class, 'uploadAvatar']);
+            Route::post('/upload-medical-report', [\App\Http\Controllers\Api\UploadMedicalReportController::class, 'uploadReport']);
             Route::post('/', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
             Route::post('/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
             Route::post('/settings', [\App\Http\Controllers\Api\ProfileController::class, 'updateSettings']);
