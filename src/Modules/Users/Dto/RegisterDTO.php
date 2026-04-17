@@ -6,7 +6,7 @@ readonly class RegisterDTO
 {
     public function __construct(
         public readonly string $name,
-        public readonly int $age,
+        public readonly string $dateOfBirth,
         public readonly string $bloodGroup,
         public readonly string $maritalStatus,
         public readonly string|null $dateOfMarriage,
@@ -24,7 +24,7 @@ readonly class RegisterDTO
     {
         return new self(
             name: $request->input('name'),
-            age: $request->input('age'),
+            dateOfBirth: $request->input('date_of_birth'),
             bloodGroup: $request->input('blood_group'),
             maritalStatus: $request->input('marital_status'),
             dateOfMarriage: $request->input('date_of_marriage'),

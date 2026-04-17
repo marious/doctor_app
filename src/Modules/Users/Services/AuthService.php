@@ -15,7 +15,7 @@ class AuthService
     {
         return User::create([
             'name' => $dto->name,
-            'age' => $dto->age,
+            'date_of_birth' => $dto->dateOfBirth,
             'blood_group' => $dto->bloodGroup,
             'marital_status' => $dto->maritalStatus,
             'date_of_marriage' => $dto->dateOfMarriage,

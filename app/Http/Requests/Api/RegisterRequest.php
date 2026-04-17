@@ -10,7 +10,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:200'],
-            'age' => ['required', 'integer'],
+            'date_of_birth' => ['required', 'date', 'before:today'],
             'blood_group' => ['required', 'string', 'max:5'],
             'marital_status' => ['required', 'string'],
             'date_of_marriage' => ['nullable', 'date'],

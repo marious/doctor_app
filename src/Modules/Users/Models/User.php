@@ -31,7 +31,7 @@ class User extends Authenticatable implements HasMedia
     use HasApiTokens, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
-        'name', 'email', 'password', 'email_verified_at', 'role_id', 'age', 'blood_group', 'marital_status', 'date_of_marriage', 'husband_name',
+        'name', 'email', 'password', 'email_verified_at', 'role_id', 'date_of_birth', 'blood_group', 'marital_status', 'date_of_marriage', 'husband_name',
         'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'medical_history', 'settings',
     ];
 
@@ -41,6 +41,7 @@ class User extends Authenticatable implements HasMedia
     ];
 
     protected $casts = [
+        'date_of_birth' => 'date:Y-m-d',
         'date_of_marriage' => 'date:Y-m-d',
         'password' => 'hashed',
         'active' => 'boolean',
@@ -53,5 +54,10 @@ class User extends Authenticatable implements HasMedia
     public function getDateOfMarriageAttribute($value)
     {
         return $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
+    }
+
+    public function getAgeAttribute()
+    {
+        return $this->date_of_birth ? \Carbon\Carbon::parse($this->date_of_birth)->age : null;
     }
 }

@@ -16,6 +16,7 @@ class UserResource extends CustomResource
             'name' => $this->resource->name,
             'email' => $this->resource->email,
             'phone' => $this->resource->phone,
+            'date_of_birth' => $this->resource->date_of_birth ? \Carbon\Carbon::parse($this->resource->date_of_birth)->format('Y-m-d') : null,
             'age' => $this->resource->age,
             'blood_group' => $this->resource->blood_group,
             'marital_status' => $this->resource->marital_status,

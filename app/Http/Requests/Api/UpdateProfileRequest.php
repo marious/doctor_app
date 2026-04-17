@@ -25,7 +25,7 @@ class UpdateProfileRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->user()->id],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone,' . $this->user()->id],
-            'age' => ['required', 'integer', 'min:1'],
+            'date_of_birth' => ['required', 'date', 'before:today'],
             'blood_group' => ['required', 'string', 'in:A+,A-,B+,B-,AB+,AB-,O+,O-'],
             'marital_status' => ['required', 'string', 'in:single,married'],
             'address' => ['nullable', 'string'],
