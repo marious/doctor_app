@@ -13,6 +13,7 @@ class AppointmentResource extends CustomResource
         return [
             'id' => $this->id,
             'service_type' => $this->service_type,
+            'visit_type' => $this->service_type == 'pregnant' ? __('Pregnancy Care') : __('Gynecology Check-up'),
             'appointment_date' => $this->appointment_date?->toDateString(),
             'appointment_time' => $this->appointment_time,
             'status' => $this->status,
