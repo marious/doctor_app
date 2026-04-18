@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\OtpSendController;
 use App\Http\Controllers\Api\PatientTrackingController;
 use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\TrackerController;
 use App\Http\Middleware\ValidateHeadersMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -31,8 +32,6 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
     });
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::post('patient-tracking/store', [PatientTrackingController::class, 'store']);
-
         //--------------------------------------------------- Profile & Settings -------------------------------------------
         Route::prefix('profile')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
@@ -47,11 +46,22 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::post('/devices/{tokenId}', [\App\Http\Controllers\Api\ProfileController::class, 'revokeDevice']);
         });
 
+
+        //--------------------------------------------------- Patient Tracking ---------------------------------------------------
+        Route::post('patient-tracking/store', [PatientTrackingController::class, 'store']);
+        // Full tracker screen data (pregnancy or menstrual)
+        Route::get('tracker', [TrackerController::class, 'show']);
+        // Calendar navigation only
+        Route::get('tracker/calendar', [TrackerController::class, 'calendar']);
+        // Log weight / BPM
+        Route::post('tracker/health-stats', [TrackerController::class, 'logHealthStat']);
+
         //--------------------------------------------------- Treatments ---------------------------------------------------
         Route::prefix('treatment')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Api\TreatmentController::class, 'index']);
-            Route::get('/tracker', [\App\Http\Controllers\Api\TreatmentController::class, 'tracker']);
-            Route::post('/tracker/log', [\App\Http\Controllers\Api\TreatmentController::class, 'logStatus']);
+            // Route::get('/', [\App\Http\Controllers\Api\TreatmentController::class, 'index']);
+
+            // Route::get('/tracker', [\App\Http\Controllers\Api\TreatmentController::class, 'tracker']);
+            // Route::post('/tracker/log', [\App\Http\Controllers\Api\TreatmentController::class, 'logStatus']);
         });
 
         //--------------------------------------------------- Appointments--------------------------------------------------
