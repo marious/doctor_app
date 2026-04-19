@@ -55,9 +55,12 @@ class OtpSendController extends Controller
                 User::where(['phone' => $request->phone, 'active' => false, 'role_id' => 3])->delete();
             }
 
+            $token = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'message' => __('Phone number verified successfully.'),
                 'verified' => true,
+                'token' => $token,
                 'status' => 200,
             ]);
         }
