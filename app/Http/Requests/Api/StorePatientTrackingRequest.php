@@ -5,8 +5,17 @@ namespace App\Http\Requests\Api;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class   StorePatientTrackingRequest extends FormRequest
+class StorePatientTrackingRequest extends FormRequest
 {
+    protected function prepareForValidation()
+    {
+        if ($this->input('tracking_type') === 'pregnancy' && is_null($this->input('pregnancy_test_status'))) {
+            $this->merge([
+                'pregnancy_test_status' => 'positive',
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         $type = $this->input('tracking_type');
@@ -28,7 +37,7 @@ class   StorePatientTrackingRequest extends FormRequest
         if ($type === 'pregnancy') {
             $rules = array_merge($rules, [
                 'lmp_date' => ['required', 'date', 'before_or_equal:today'],
-                'pregnancy_test_status' => ['required', Rule::in(['positive', 'negative', 'not_sure'])],
+                'pregnancy_test_status' => ['nullable', Rule::in(['positive', 'negative', 'not_sure'])],
             ]);
         }
 
