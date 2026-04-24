@@ -5,6 +5,7 @@ namespace Modules\Patient\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Users\Models\User;
 
 class PatientTracking extends Model
@@ -49,9 +50,9 @@ class PatientTracking extends Model
         return $this->hasMany(HealthStat::class);
     }
  
-    public function latestHealthStat()
+    public function latestHealthStat(): HasOne
     {
-        return $this->hasOne(HealthStat::class)->latestOfMany();
+        return $this->hasOne(HealthStat::class, 'patient_tracking_id')->latestOfMany('recorded_at');
     }
 
     // ─── Computed Helpers ─────────────────────────────────────────────────────
