@@ -4,7 +4,6 @@ namespace Modules\Users\Resources;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Modules\Core\Resources\MediaResource;
 use Modules\Core\CustomResource;
 
 class TrackerResource extends CustomResource
@@ -106,32 +105,71 @@ class TrackerResource extends CustomResource
         }
  
         // ── Mode: menstrual ───────────────────────────────────────────────────
-        $nextPeriod = $this->next_period_date;
-        $today      = Carbon::today();
- 
+        $nextPeriod   = $this->next_period_date;
+        $today        = Carbon::today();
+        $currentPhase = $this->currentPhase();
+        $cycleDay     = $this->currentCycleDay();
+        $daysUntil    = $nextPeriod ? max(0, (int) $today->diffInDays($nextPeriod, false)) : null;
+
         return [
-            'tracking_id'    => $this->id,
-            'tracking_type'  => 'menstrual',
-            'mode_label'     => 'Period Mode',
- 
-            'calendar' => $this->calendarData(
+            'tracking_id'   => $this->id,
+            'tracking_type' => 'menstrual',
+            'mode_label'    => 'Period Mode',
+
+            // ── Calendar ─────────────────────────────────────────────────────
+            'calendar' => $this->menstrualCalendarData(
                 (int) $monthCarbon->format('Y'),
                 (int) $monthCarbon->format('n')
             ),
- 
-            'cycle_summary' => [
-                'last_menstruation_date' => $this->last_menstruation_date?->toDateString(),
-                'cycle_length'           => $this->cycle_length,
-                'period_duration'        => $this->period_duration,
-                'next_period_date'       => $nextPeriod?->toDateString(),
-                'next_period_formatted'  => $nextPeriod?->format('M d, Y'),
-                'days_until_next_period' => $nextPeriod
-                    ? max(0, (int) $today->diffInDays($nextPeriod, false))
+
+            // ── Cycle info notification bar ───────────────────────────────────
+            'cycle_info' => [
+                'cycle_day' => $cycleDay,
+                'label'     => $cycleDay ? "Cycle Day {$cycleDay}" : null,
+                'message'   => $daysUntil !== null
+                    ? ($daysUntil === 0
+                        ? 'Your period is expected today.'
+                        : "Your period is expected in {$daysUntil} " . ($daysUntil === 1 ? 'day.' : 'days.'))
                     : null,
-                'ovulation_date'         => $this->ovulation_date?->toDateString(),
-                'ovulation_formatted'    => $this->ovulation_date?->format('M d, Y'),
             ],
- 
+
+            // ── Current phase ─────────────────────────────────────────────────
+            'current_phase' => $currentPhase,
+
+            // ── Cycle summary ─────────────────────────────────────────────────
+            'cycle_summary' => [
+                'cycle_day'                   => $cycleDay,
+                'cycle_length'                => $this->cycle_length,
+                'period_duration'             => $this->period_duration,
+                'last_menstruation_date'      => $this->last_menstruation_date?->toDateString(),
+                'last_menstruation_formatted' => $this->last_menstruation_date?->format('M d, Y'),
+                'next_period_date'            => $nextPeriod?->toDateString(),
+                'next_period_formatted'       => $nextPeriod?->format('M d, Y'),
+                'days_until_next_period'      => $daysUntil,
+                'ovulation_date'              => $this->ovulation_date?->toDateString(),
+                'ovulation_formatted'         => $this->ovulation_date?->format('M d, Y'),
+                'days_until_ovulation'        => $this->ovulation_date
+                    ? max(0, (int) $today->diffInDays($this->ovulation_date, false))
+                    : null,
+            ],
+
+            // ── Statistical report ────────────────────────────────────────────
+            'statistical_report' => [
+                'regularity' => [
+                    'label' => 'Regularity',
+                    'value' => $this->cycleRegularity(),
+                    'unit'  => '%',
+                ],
+                'duration' => [
+                    'label' => 'Duration',
+                    'value' => $this->averageCycleDuration(),
+                    'unit'  => 'days',
+                ],
+                'symptom_frequency' => $this->symptomFrequency(),
+                'ai_summary'        => $this->menstrualAiSummary(),
+            ],
+
+            // ── Health stats ──────────────────────────────────────────────────
             'health_stats' => [
                 'weight' => [
                     'label' => 'Current Weight',
@@ -145,7 +183,7 @@ class TrackerResource extends CustomResource
                 ],
                 'recorded_at' => $latestStat?->recorded_at?->toDateTimeString(),
             ],
- 
+
             'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }

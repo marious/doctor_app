@@ -5,6 +5,7 @@ namespace Modules\Patient\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Users\Models\User;
 
@@ -48,6 +49,11 @@ class PatientTracking extends Model
     public function healthStats(): HasMany
     {
         return $this->hasMany(HealthStat::class);
+    }
+
+    public function symptomLogs(): HasMany
+    {
+        return $this->hasMany(CycleSymptomLog::class);
     }
  
     public function latestHealthStat(): HasOne
@@ -211,26 +217,26 @@ class PatientTracking extends Model
     }
  
     /**
-     * Build calendar data for a given month
+     * Build calendar data for a given month (pregnancy mode).
      * Returns days with type: current_week | past | upcoming
      */
     public function calendarData(int $year, int $month): array
     {
         if (!$this->lmp_date) return [];
- 
+
         $today          = Carbon::today();
         $currentWeekStart = $today->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd   = $today->copy()->endOfWeek(Carbon::SATURDAY);
- 
+
         $startOfMonth = Carbon::create($year, $month, 1);
         $endOfMonth   = $startOfMonth->copy()->endOfMonth();
- 
+
         $days = [];
         $cursor = $startOfMonth->copy();
- 
+
         while ($cursor->lte($endOfMonth)) {
             $date = $cursor->copy();
- 
+
             if ($date->between($currentWeekStart, $currentWeekEnd)) {
                 $type = 'current_week';
             } elseif ($date->lt($currentWeekStart)) {
@@ -238,18 +244,18 @@ class PatientTracking extends Model
             } else {
                 $type = 'upcoming';
             }
- 
+
             $days[] = [
                 'date'      => $date->toDateString(),
                 'day'       => (int) $date->format('j'),
-                'day_of_week' => $date->format('D')[0], // S M T W T F S
+                'day_of_week' => $date->format('D')[0],
                 'type'      => $type,
                 'is_today'  => $date->isToday(),
             ];
- 
+
             $cursor->addDay();
         }
- 
+
         return [
             'year'        => $year,
             'month'       => $month,
@@ -263,7 +269,252 @@ class PatientTracking extends Model
             ],
         ];
     }
- 
+
+    /**
+     * Build calendar data for menstrual mode.
+     * Day types: period | ovulation | fertile | predicted_period | normal
+     */
+    public function menstrualCalendarData(int $year, int $month): array
+    {
+        if (!$this->last_menstruation_date || !$this->cycle_length || !$this->period_duration) {
+            return [];
+        }
+
+        $lmd          = $this->last_menstruation_date->copy();
+        $cycleLength  = $this->cycle_length;
+        $periodDur    = $this->period_duration;
+        $ovulation    = $this->ovulation_date;
+        $nextPeriod   = $this->next_period_date;
+
+        // Fertile window: 5 days before ovulation through ovulation day
+        $fertileStart = $ovulation?->copy()->subDays(5);
+        $fertileEnd   = $ovulation;
+
+        $startOfMonth = Carbon::create($year, $month, 1);
+        $endOfMonth   = $startOfMonth->copy()->endOfMonth();
+        $today        = Carbon::today();
+
+        $days   = [];
+        $cursor = $startOfMonth->copy();
+
+        while ($cursor->lte($endOfMonth)) {
+            $date = $cursor->copy();
+
+            // Determine how many cycles back/forward this date sits
+            $daysSinceLmd = $lmd->diffInDays($date, false);
+            $cycleDay     = $daysSinceLmd >= 0
+                ? (int) ($daysSinceLmd % $cycleLength) + 1
+                : null;
+
+            $type = 'normal';
+
+            if ($cycleDay !== null) {
+                if ($cycleDay <= $periodDur) {
+                    $type = 'menstruation';
+                } elseif ($ovulation && $date->isSameDay($ovulation)) {
+                    $type = 'ovulation_day';
+                } elseif ($fertileStart && $fertileEnd && $date->between($fertileStart, $fertileEnd)) {
+                    $type = 'ovulation_window';
+                }
+            }
+
+            // Predicted next period start overrides
+            if ($nextPeriod && $date->isSameDay($nextPeriod)) {
+                $type = 'predicted';
+            }
+
+            $days[] = [
+                'date'        => $date->toDateString(),
+                'day'         => (int) $date->format('j'),
+                'day_of_week' => $date->format('D')[0],
+                'type'        => $type,
+                'is_today'    => $date->isToday(),
+                'is_future'   => $date->gt($today),
+            ];
+
+            $cursor->addDay();
+        }
+
+        return [
+            'year'       => $year,
+            'month'      => $month,
+            'month_name' => $startOfMonth->format('F Y'),
+            'days'       => $days,
+            'legend'     => [
+                ['type' => 'menstruation',   'label' => 'Menstruation'],
+                ['type' => 'predicted',      'label' => 'Predicted'],
+                ['type' => 'ovulation_window','label' => 'Ovulation Window'],
+                ['type' => 'ovulation_day',  'label' => 'Ovulation Day'],
+                ['type' => 'today',          'label' => 'Today'],
+            ],
+        ];
+    }
+
+    /**
+     * Current day within the menstrual cycle (1-indexed).
+     */
+    public function currentCycleDay(): ?int
+    {
+        if (!$this->last_menstruation_date || !$this->cycle_length) {
+            return null;
+        }
+
+        $daysSinceLmd = $this->last_menstruation_date->diffInDays(Carbon::today(), false);
+
+        if ($daysSinceLmd < 0) {
+            return null;
+        }
+
+        return (int) ($daysSinceLmd % $this->cycle_length) + 1;
+    }
+
+    /**
+     * Current menstrual cycle phase with label and description.
+     */
+    public function currentPhase(): ?array
+    {
+        $cycleDay    = $this->currentCycleDay();
+        $periodDur   = $this->period_duration ?? 5;
+        $cycleLength = $this->cycle_length ?? 28;
+        $ovulationDay = $cycleLength - 14;
+
+        if ($cycleDay === null) {
+            return null;
+        }
+
+        if ($cycleDay <= $periodDur) {
+            return [
+                'phase'       => 'menstrual',
+                'label'       => 'Menstrual Phase',
+                'description' => 'Your period is active. Rest and stay hydrated.',
+                'cycle_day'   => $cycleDay,
+            ];
+        }
+
+        if ($cycleDay < $ovulationDay - 1) {
+            return [
+                'phase'       => 'follicular',
+                'label'       => 'Follicular Phase',
+                'description' => 'Energy is rising. Great time for exercise and new beginnings.',
+                'cycle_day'   => $cycleDay,
+            ];
+        }
+
+        if ($cycleDay >= $ovulationDay - 1 && $cycleDay <= $ovulationDay + 1) {
+            return [
+                'phase'       => 'ovulation',
+                'label'       => 'Ovulation Phase',
+                'description' => 'Peak fertility window. You may feel energized and social.',
+                'cycle_day'   => $cycleDay,
+            ];
+        }
+
+        return [
+            'phase'       => 'luteal',
+            'label'       => 'Luteal Phase',
+            'description' => 'Progesterone rises. Focus on self-care and nutrition.',
+            'cycle_day'   => $cycleDay,
+        ];
+    }
+
+    /**
+     * Cycle regularity as a percentage across all tracking records for this patient.
+     * Measures how consistent cycle lengths are (100% = perfectly regular).
+     */
+    public function cycleRegularity(): ?float
+    {
+        $records = static::where('patient_id', $this->patient_id)
+            ->where('tracking_type', 'menstrual')
+            ->whereNotNull('cycle_length')
+            ->pluck('cycle_length');
+
+        if ($records->count() < 2) {
+            return $records->count() === 1 ? 100.0 : null;
+        }
+
+        $mean   = $records->avg();
+        $stdDev = sqrt($records->map(fn($v) => pow($v - $mean, 2))->avg());
+
+        return round(max(0, (1 - ($stdDev / $mean)) * 100), 1);
+    }
+
+    /**
+     * Average cycle duration across all tracking records for this patient.
+     */
+    public function averageCycleDuration(): ?float
+    {
+        $avg = static::where('patient_id', $this->patient_id)
+            ->where('tracking_type', 'menstrual')
+            ->whereNotNull('cycle_length')
+            ->avg('cycle_length');
+
+        return $avg ? round((float) $avg, 1) : null;
+    }
+
+    /**
+     * Symptom frequency as percentage of period days each symptom was logged.
+     */
+    public function symptomFrequency(): array
+    {
+        $logs = $this->symptomLogs()->get();
+
+        if ($logs->isEmpty()) {
+            return [];
+        }
+
+        $totalDays = $logs->pluck('logged_date')->unique()->count();
+
+        return $logs->groupBy('symptom')
+            ->map(fn($group, $symptom) => [
+                'symptom'   => $symptom,
+                'label'     => ucfirst(str_replace('_', ' ', $symptom)),
+                'frequency' => (int) round(($group->count() / $totalDays) * 100),
+            ])
+            ->sortByDesc('frequency')
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * AI summary for menstrual tracking based on cycle data and symptom patterns.
+     */
+    public function menstrualAiSummary(): string
+    {
+        $regularity = $this->cycleRegularity();
+        $cycleDay   = $this->currentCycleDay();
+        $phase      = $this->currentPhase();
+        $topSymptom = collect($this->symptomFrequency())->first();
+
+        $parts = [];
+
+        if ($regularity !== null) {
+            if ($regularity >= 90) {
+                $parts[] = 'Your cycle is highly regular.';
+            } elseif ($regularity >= 70) {
+                $parts[] = 'Your cycle shows moderate regularity.';
+            } else {
+                $parts[] = 'Your cycle shows some irregularity — consider speaking with your doctor.';
+            }
+        }
+
+        if ($topSymptom && $topSymptom['frequency'] >= 50) {
+            $parts[] = ucfirst($topSymptom['label']) . ' are frequently reported. Consider tracking hydration and rest during this time.';
+        }
+
+        if ($phase) {
+            $parts[] = match($phase['phase']) {
+                'menstrual'  => 'Rest and stay hydrated during your period.',
+                'follicular' => 'Your energy is rising — a good time for light exercise.',
+                'ovulation'  => 'You are in your fertile window.',
+                'luteal'     => 'Focus on nutrition and self-care in the coming days.',
+                default      => '',
+            };
+        }
+
+        return implode(' ', array_filter($parts))
+            ?: 'Keep logging your cycle data for personalized insights.';
+    }
+
     /**
      * AI health tip based on current week
      */

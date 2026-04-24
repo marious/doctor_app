@@ -55,6 +55,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         Route::get('tracker/calendar', [TrackerController::class, 'calendar']);
         // Log weight / BPM
         Route::post('tracker/health-stats', [TrackerController::class, 'logHealthStat']);
+        // Log period symptoms
+        Route::post('tracker/log-symptoms', [TrackerController::class, 'logSymptom']);
 
         //--------------------------------------------------- Treatments ---------------------------------------------------
         Route::prefix('treatment')->group(function () {
