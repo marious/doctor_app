@@ -41,7 +41,7 @@ class TrackerController extends Controller
                 'success' => false,
                 'message' => 'No tracking record found. Please start tracking first.',
                 'data'    => null,
-            ], 404);
+            ], 200);
         }
 
         return response()->json([
