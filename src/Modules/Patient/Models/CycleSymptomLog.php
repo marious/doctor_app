@@ -7,10 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CycleSymptomLog extends Model
 {
+    public function symptom(): BelongsTo
+    {
+        return $this->belongsTo(Symptom::class);
+    }
+
     protected $fillable = [
         'patient_tracking_id',
         'logged_date',
-        'symptom',
+        'symptom_id',
         'severity',
     ];
 

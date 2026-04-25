@@ -53,7 +53,7 @@ class PatientTracking extends Model
 
     public function symptomLogs(): HasMany
     {
-        return $this->hasMany(CycleSymptomLog::class);
+        return $this->hasMany(CycleSymptomLog::class)->with('symptom');
     }
  
     public function latestHealthStat(): HasOne
@@ -464,10 +464,10 @@ class PatientTracking extends Model
 
         $totalDays = $logs->pluck('logged_date')->unique()->count();
 
-        return $logs->groupBy('symptom')
-            ->map(fn($group, $symptom) => [
-                'symptom'   => $symptom,
-                'label'     => ucfirst(str_replace('_', ' ', $symptom)),
+        return $logs->groupBy('symptom_id')
+            ->map(fn($group) => [
+                'symptom'   => $group->first()->symptom->key,
+                'label'     => $group->first()->symptom->label,
                 'frequency' => (int) round(($group->count() / $totalDays) * 100),
             ])
             ->sortByDesc('frequency')
@@ -498,7 +498,7 @@ class PatientTracking extends Model
         }
 
         if ($topSymptom && $topSymptom['frequency'] >= 50) {
-            $parts[] = ucfirst($topSymptom['label']) . ' are frequently reported. Consider tracking hydration and rest during this time.';
+            $parts[] = $topSymptom['label'] . ' are frequently reported. Consider tracking hydration and rest during this time.';
         }
 
         if ($phase) {

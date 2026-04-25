@@ -5,6 +5,8 @@ namespace Modules\Users\Resources;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Modules\Core\CustomResource;
+use Modules\Patient\Models\CycleSymptomLog;
+use Modules\Patient\Models\Symptom;
 
 class TrackerResource extends CustomResource
 {
@@ -169,6 +171,9 @@ class TrackerResource extends CustomResource
                 'ai_summary'        => $this->menstrualAiSummary(),
             ],
 
+            // ── Symptom picker (all options + today's selection) ──────────────
+            'symptom_picker' => $this->buildSymptomPicker($today),
+
             // ── Health stats ──────────────────────────────────────────────────
             'health_stats' => [
                 'weight' => [
@@ -185,6 +190,48 @@ class TrackerResource extends CustomResource
             ],
 
             'created_at' => $this->created_at?->toDateTimeString(),
+        ];
+    }
+
+    private function buildSymptomPicker(Carbon $today): array
+    {
+        // Today's logged symptoms for this tracking record
+        $todayLogs = CycleSymptomLog::where('patient_tracking_id', $this->id)
+            ->where('logged_date', $today->toDateString())
+            ->with('symptom')
+            ->get()
+            ->keyBy('symptom_id');
+
+        // All symptoms grouped
+        $groups = Symptom::orderBy('sort_order')
+            ->get()
+            ->groupBy('group')
+            ->map(fn($items, $group) => [
+                'group'    => $group,
+                'label'    => match($group) {
+                    'general'           => 'General Symptoms',
+                    'mood'              => 'Mood',
+                    'vaginal_discharge' => 'Vaginal Discharge',
+                    default             => ucfirst($group),
+                },
+                'symptoms' => $items->map(fn($s) => [
+                    'id'          => $s->id,
+                    'key'         => $s->key,
+                    'label'       => $s->label,
+                    'is_selected' => $todayLogs->has($s->id),
+                    'severity'    => $todayLogs->get($s->id)?->severity,
+                ])->values(),
+            ])
+            ->values();
+
+        return [
+            'logged_date' => $today->toDateString(),
+            'groups'      => $groups,
+            'severities'  => [
+                ['key' => 'mild',     'label' => 'Mild'],
+                ['key' => 'moderate', 'label' => 'Moderate'],
+                ['key' => 'severe',   'label' => 'Severe'],
+            ],
         ];
     }
 }

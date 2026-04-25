@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Patient\Models\CycleSymptomLog;
 use Modules\Patient\Models\HealthStat;
 use Modules\Patient\Models\PatientTracking;
+use Modules\Patient\Models\Symptom;
 use Illuminate\Support\Facades\Auth;
 use Modules\Users\Resources\TrackerResource;
 
@@ -108,17 +109,56 @@ class TrackerController extends Controller
     }
 
     /**
+     * GET /api/v1/tracker/symptoms
+     *
+     * Returns available symptoms grouped by category for the log-symptoms UI.
+     */
+    public function symptoms(): JsonResponse
+    {
+        $grouped = Symptom::orderBy('sort_order')
+            ->get()
+            ->groupBy('group')
+            ->map(fn($items, $group) => [
+                'group'    => $group,
+                'label'    => match($group) {
+                    'general'           => 'General Symptoms',
+                    'mood'              => 'Mood',
+                    'vaginal_discharge' => 'Vaginal Discharge',
+                    default             => ucfirst($group),
+                },
+                'symptoms' => $items->map(fn($s) => [
+                    'id'    => $s->id,
+                    'key'   => $s->key,
+                    'label' => $s->label,
+                ])->values(),
+            ])
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'groups'     => $grouped,
+                'severities' => [
+                    ['key' => 'mild',     'label' => 'Mild'],
+                    ['key' => 'moderate', 'label' => 'Moderate'],
+                    ['key' => 'severe',   'label' => 'Severe'],
+                ],
+            ],
+        ]);
+    }
+
+    /**
      * POST /api/v1/tracker/log-symptoms
      *
      * Log one or more symptoms for a given date.
+     * Accepts symptom_ids from GET /api/v1/tracker/symptoms.
      */
     public function logSymptom(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'logged_date' => ['required', 'date', 'before_or_equal:today'],
-            'symptoms'    => ['required', 'array', 'min:1'],
-            'symptoms.*'  => ['string', 'in:cramps,fatigue,headache,bloating,mood_swings,backache,nausea,breast_tenderness'],
-            'severity'    => ['nullable', 'in:mild,moderate,severe'],
+            'symptom_ids'   => ['required', 'array', 'min:1'],
+            'symptom_ids.*' => ['integer', 'exists:symptoms,id'],
+            'severity'      => ['nullable', 'in:mild,moderate,severe'],
         ]);
 
         $tracking = PatientTracking::where('patient_id', Auth::id())
@@ -129,23 +169,28 @@ class TrackerController extends Controller
         $severity = $validated['severity'] ?? 'mild';
         $saved    = [];
 
-        foreach ($validated['symptoms'] as $symptom) {
+        foreach ($validated['symptom_ids'] as $symptomId) {
             $log = CycleSymptomLog::updateOrCreate(
                 [
                     'patient_tracking_id' => $tracking->id,
-                    'logged_date'         => $validated['logged_date'],
-                    'symptom'             => $symptom,
+                    'logged_date'         => date('Y-m-d'),
+                    'symptom_id'          => $symptomId,
                 ],
                 ['severity' => $severity]
             );
-            $saved[] = ['symptom' => $log->symptom, 'severity' => $log->severity];
+            $saved[] = [
+                'symptom_id' => $log->symptom_id,
+                'key'        => $log->symptom->key,
+                'label'      => $log->symptom->label,
+                'severity'   => $log->severity,
+            ];
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Symptoms logged successfully.',
             'data'    => [
-                'logged_date' => $validated['logged_date'],
+                'logged_date' => date('Y-m-d'),
                 'symptoms'    => $saved,
             ],
         ], 201);
