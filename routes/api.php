@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\HydrationController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\OtpSendController;
 use App\Http\Controllers\Api\PatientTrackingController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\TrackerController;
+use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Middleware\ValidateHeadersMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -62,10 +64,23 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         //--------------------------------------------------- Treatments ---------------------------------------------------
         Route::prefix('treatment')->group(function () {
-            // Route::get('/', [\App\Http\Controllers\Api\TreatmentController::class, 'index']);
+            // Daily medication schedule (must come before {appointment?} to avoid capture)
+            Route::get('/tracker', [TreatmentController::class, 'tracker']);
+            Route::post('/tracker/log', [TreatmentController::class, 'logStatus']);
+            // Active & past treatment list
+            Route::get('/list', [TreatmentController::class, 'index']);
+            // Treatment screen: omit ID to get latest appointment, or pass ID for a specific one
+            Route::get('/{appointment?}', [TreatmentController::class, 'show']);
+        });
 
-            // Route::get('/tracker', [\App\Http\Controllers\Api\TreatmentController::class, 'tracker']);
-            // Route::post('/tracker/log', [\App\Http\Controllers\Api\TreatmentController::class, 'logStatus']);
+        //--------------------------------------------------- Hydration ---------------------------------------------------
+        Route::prefix('hydration')->group(function () {
+            // Today's hydration status
+            Route::get('/', [HydrationController::class, 'show']);
+            // Tap a cup — send cups_count (new total)
+            Route::post('/log', [HydrationController::class, 'log']);
+            // Reset tracker to 0 cups
+            Route::post('/reset', [HydrationController::class, 'reset']);
         });
 
         //--------------------------------------------------- Appointments--------------------------------------------------

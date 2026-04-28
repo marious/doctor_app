@@ -20,6 +20,8 @@ class Appointment extends CustomModel
         'appointment_time',
         'status',
         'notes',
+        'diagnosis',
+        'additional_instructions',
         'confirmed_at',
         'cancelled_at',
     ];
@@ -28,6 +30,7 @@ class Appointment extends CustomModel
         'appointment_date' => 'date',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'additional_instructions' => 'array',
     ];
 
     public function newEloquentBuilder($query): AppointmentQueryBuilder

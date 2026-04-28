@@ -35,21 +35,25 @@ class AppointmentResource extends CustomResource
 //                'address' => $this->clinic?->address,
 //            ],
 
+            'diagnosis'               => $this->diagnosis,
+            'additional_instructions' => $this->additional_instructions ?? [],
+
             'prescriptions' => $this->whenLoaded('prescriptions', fn() => $this->prescriptions->map(fn($p) => [
-                'id' => $p->id,
+                'id'              => $p->id,
                 'medication_name' => $p->medication_name,
-                'dosage' => $p->dosage,
-                'frequency' => $p->frequency,
-                'duration_days' => $p->duration_days,
-            ])
-            ),
+                'dose_strength'   => $p->dose_strength,
+                'dosage'          => $p->dosage,
+                'frequency'       => $p->frequency,
+                'duration_days'   => $p->duration_days,
+                'warning_note'    => $p->warning_note,
+            ])),
 
             'requested_tests' => $this->whenLoaded('requestedTests', fn() => $this->requestedTests->map(fn($t) => [
-                'id' => $t->id,
+                'id'        => $t->id,
                 'test_name' => $t->test_name,
-                'status' => $t->status,
-            ])
-            ),
+                'type'      => $t->type,
+                'status'    => $t->status,
+            ])),
 
             'status_timeline' => $this->statusTimeline(),
         ];

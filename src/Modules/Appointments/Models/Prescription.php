@@ -11,9 +11,11 @@ class Prescription extends CustomModel
     protected $fillable = [
         'appointment_id',
         'medication_name',
+        'dose_strength',
         'dosage',
         'frequency',
         'duration_days',
+        'warning_note',
     ];
 
     public function newEloquentBuilder($query): PrescriptionQueryBuilder

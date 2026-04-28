@@ -9,7 +9,7 @@ use Modules\Core\Models\CustomModel;
 
 class RequestedTest extends CustomModel
 {
-    protected $fillable = ['appointment_id', 'test_name', 'status'];
+    protected $fillable = ['appointment_id', 'test_name', 'type', 'status'];
 
     public function newEloquentBuilder($query): RequestedTestQueryBuilder
     {
