@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AdvertisementController;
+use App\Http\Controllers\Api\ArticleController;
+use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\HydrationController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\OtpSendController;
@@ -100,5 +103,47 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             // Available time slots for a doctor on a date
             Route::get('/available-slots', [AppointmentController::class, 'availableSlots']);
         });
+
+
+        //--------------------------------------------------- Articles --------------------------------------------------
+        Route::prefix('articles')->group(function () {
+            Route::get('/', [ArticleController::class, 'index']);
+            Route::get('/{article}', [ArticleController::class, 'show']);
+        });
+
+        //--------------------------------------------------- Videos --------------------------------------------------
+        Route::prefix('videos')->group(function () {
+            Route::get('/', [VideoController::class, 'index']);
+            Route::get('/{video}', [VideoController::class, 'show']);
+        });
+
+        //--------------------------------------------------- Advertisements --------------------------------------------------
+        Route::prefix('advs')->group(function () {
+            Route::get('/', [AdvertisementController::class, 'index']);
+            Route::get('/{advertisement}', [AdvertisementController::class, 'show']);
+        });
+
+        //--------------------------------------------------- Doctor/Admin --------------------------------------------------
+        Route::middleware(['admin'])->prefix('doctor')->group(function() {
+            Route::prefix('articles')->group(function () {
+                Route::post('/', [ArticleController::class, 'store']);
+                Route::post('/{article}', [ArticleController::class, 'update']);
+                Route::delete('/{article}', [ArticleController::class, 'destroy']);
+            });
+
+            Route::prefix('videos')->group(function () {
+                Route::post('/', [VideoController::class, 'store']);
+                Route::post('/{video}', [VideoController::class, 'update']);
+                Route::delete('/{video}', [VideoController::class, 'destroy']);
+            });
+
+            Route::prefix('advs')->group(function () {
+                Route::post('/', [AdvertisementController::class, 'store']);
+                Route::post('/{advertisement}', [AdvertisementController::class, 'update']);
+                Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
+            });
+        });
+
+
     });
 });
