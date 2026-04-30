@@ -11,11 +11,14 @@ class AdvertisementResource extends CustomResource
     {
         return [
             'id'          => $this->id,
-            'title'       => $this->title,
-            'description' => $this->description,
-            'banner_image' => $this->banner_url,
-            'button_text' => $this->button_text,
-            'button_link' => $this->button_link,
+            'title'                => $this->title,
+            'position_title'       => $this->position_title,
+            'description'          => $this->description,
+            'position_description' => $this->position_description,
+            'banner_image'         => $this->banner_url,
+            'button_text'          => $this->button_text,
+            'button_link'          => $this->button_link,
+            'position_button'      => $this->position_button,
             'created_at'  => $this->created_at?->toDateTimeString(),
         ];
     }

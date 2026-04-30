@@ -9,11 +9,14 @@ class StoreAdvertisementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'        => ['required', 'string', 'max:255'],
-            'description'  => ['nullable', 'string', 'max:1000'],
-            'banner_image' => ['nullable', 'image', 'max:5120'],
-            'button_text'  => ['nullable', 'string', 'max:100'],
-            'button_link'  => ['nullable', 'string', 'max:500'],
+            'title'                => ['required', 'string', 'max:255'],
+            'position_title'       => ['nullable', 'in:left,center,right'],
+            'description'          => ['nullable', 'string', 'max:1000'],
+            'position_description' => ['nullable', 'in:left,center,right'],
+            'banner_image'         => ['nullable', 'image', 'max:5120'],
+            'button_text'          => ['nullable', 'string', 'max:100'],
+            'button_link'          => ['nullable', 'string', 'max:500'],
+            'position_button'      => ['nullable', 'in:left,center,right'],
         ];
     }
 

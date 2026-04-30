@@ -16,9 +16,12 @@ class Advertisement extends CustomModel implements HasMedia
     protected $fillable = [
         'created_by',
         'title',
+        'position_title',
         'description',
+        'position_description',
         'button_text',
         'button_link',
+        'position_button',
     ];
 
     public function newEloquentBuilder($query): AdvertisementQueryBuilder
