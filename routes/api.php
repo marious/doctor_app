@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\VideoController;
@@ -141,6 +142,13 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/', [AdvertisementController::class, 'store']);
                 Route::post('/{advertisement}', [AdvertisementController::class, 'update']);
                 Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
+            });
+
+            //--------------------------------------------------- Availability --------------------------------------------------
+            Route::prefix('availability')->group(function () {
+                Route::get('/calendar', [AvailabilityController::class, 'calendar']);
+                Route::get('/{date}', [AvailabilityController::class, 'show']);
+                Route::post('/{date}', [AvailabilityController::class, 'save']);
             });
         });
 
