@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\VideoController;
@@ -142,6 +143,15 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/', [AdvertisementController::class, 'store']);
                 Route::post('/{advertisement}', [AdvertisementController::class, 'update']);
                 Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
+            });
+
+            //--------------------------------------------------- Doctor Appointments --------------------------------------------------
+            Route::prefix('appointments')->group(function () {
+                Route::get('/', [DoctorAppointmentController::class, 'index']);
+                Route::get('/{appointment}', [DoctorAppointmentController::class, 'show']);
+                Route::post('/{appointment}/approve', [DoctorAppointmentController::class, 'approve']);
+                Route::post('/{appointment}/reject', [DoctorAppointmentController::class, 'reject']);
+                Route::post('/{appointment}/reschedule', [DoctorAppointmentController::class, 'reschedule']);
             });
 
             //--------------------------------------------------- Availability --------------------------------------------------
