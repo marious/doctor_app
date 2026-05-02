@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
+use App\Http\Controllers\Api\PatientDirectoryController;
+use App\Http\Controllers\Api\PatientSessionController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\VideoController;
@@ -143,6 +145,18 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/', [AdvertisementController::class, 'store']);
                 Route::post('/{advertisement}', [AdvertisementController::class, 'update']);
                 Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
+            });
+
+            //--------------------------------------------------- Patient Directory --------------------------------------------------
+            Route::prefix('patients')->group(function () {
+                Route::get('/', [PatientDirectoryController::class, 'index']);
+                Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
+
+                // Clinical sessions
+                Route::get('/{patient}/sessions', [PatientSessionController::class, 'index']);
+                Route::post('/{patient}/sessions', [PatientSessionController::class, 'store']);
+                Route::get('/{patient}/sessions/{session}', [PatientSessionController::class, 'show']);
+                Route::post('/{patient}/sessions/{session}', [PatientSessionController::class, 'update']);
             });
 
             //--------------------------------------------------- Doctor Appointments --------------------------------------------------

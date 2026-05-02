@@ -2,9 +2,13 @@
 
 namespace Modules\Users\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Appointments\Models\Appointment;
+use Modules\Patient\Models\PatientTracking;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -32,7 +36,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $fillable = [
         'name', 'email', 'password', 'email_verified_at', 'role_id', 'date_of_birth', 'blood_group', 'marital_status', 'date_of_marriage', 'husband_name',
-        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'medical_history', 'settings',
+        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'risk_status', 'medical_history', 'settings',
     ];
 
     protected $hidden = [
@@ -59,5 +63,22 @@ class User extends Authenticatable implements HasMedia
     public function getAgeAttribute()
     {
         return $this->date_of_birth ? \Carbon\Carbon::parse($this->date_of_birth)->age : null;
+    }
+
+    public function patientTracking(): HasOne
+    {
+        return $this->hasOne(PatientTracking::class, 'patient_id')->latestOfMany();
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class, 'patient_id');
+    }
+
+    public function lastCompletedAppointment(): HasOne
+    {
+        return $this->hasOne(Appointment::class, 'patient_id')
+            ->where('status', 'completed')
+            ->latestOfMany('appointment_date');
     }
 }
