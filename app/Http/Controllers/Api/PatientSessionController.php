@@ -34,6 +34,7 @@ class PatientSessionController extends Controller
             'doctor_id'                => Auth::id(),
             'session_date'             => $request->session_date,
             'visit_type'               => $request->visit_type,
+            'session_status'           => $request->session_status ?? 'completed',
             'risk_status'              => $request->risk_status,
             'bp'                       => $request->bp,
             'hr'                       => $request->hr,
@@ -135,6 +136,7 @@ class PatientSessionController extends Controller
         $session->update(array_filter([
             'session_date'             => $request->session_date,
             'visit_type'               => $request->visit_type,
+            'session_status'           => $request->session_status,
             'risk_status'              => $request->risk_status,
             'bp'                       => $request->bp,
             'hr'                       => $request->hr,

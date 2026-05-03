@@ -19,6 +19,7 @@ class PatientSession extends Model implements HasMedia
         'doctor_id',
         'session_date',
         'visit_type',
+        'session_status',
         'risk_status',
         'bp',
         'hr',

@@ -36,7 +36,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $fillable = [
         'name', 'email', 'password', 'email_verified_at', 'role_id', 'date_of_birth', 'blood_group', 'marital_status', 'date_of_marriage', 'husband_name',
-        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'risk_status', 'medical_history', 'settings',
+        'phone', 'emergency_number', 'address', 'biometric_enabled', 'notification_enabled', 'active', 'risk_status', 'medical_history', 'allergies', 'current_medications', 'settings',
     ];
 
     protected $hidden = [
@@ -51,7 +51,9 @@ class User extends Authenticatable implements HasMedia
         'active' => 'boolean',
         'notification_enabled' => 'boolean',
         'biometric_enabled' => 'boolean',
-        'medical_history' => 'array',
+        'medical_history'     => 'array',
+        'allergies'           => 'array',
+        'current_medications' => 'array',
         'settings' => 'array',
     ];
 

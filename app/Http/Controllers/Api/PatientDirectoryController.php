@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Users\Models\User;
 use Modules\Users\Resources\PatientDirectoryResource;
+use Modules\Users\Resources\PatientProfileResource;
 
 class PatientDirectoryController extends Controller
 {
@@ -62,6 +63,22 @@ class PatientDirectoryController extends Controller
                 'per_page'     => $patients->perPage(),
                 'total'        => $patients->total(),
             ],
+        ]);
+    }
+
+    /**
+     * GET /doctor/patients/{patient}
+     * Full patient profile: info card + session stats + session timeline.
+     */
+    public function show(User $patient): JsonResponse
+    {
+        abort_if($patient->role_id !== 2, 404);
+
+        $patient->load('lastCompletedAppointment');
+
+        return response()->json([
+            'success' => true,
+            'data'    => new PatientProfileResource($patient),
         ]);
     }
 

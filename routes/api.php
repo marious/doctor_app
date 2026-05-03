@@ -150,6 +150,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             //--------------------------------------------------- Patient Directory --------------------------------------------------
             Route::prefix('patients')->group(function () {
                 Route::get('/', [PatientDirectoryController::class, 'index']);
+                Route::get('/{patient}', [PatientDirectoryController::class, 'show']);
                 Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
 
                 // Clinical sessions

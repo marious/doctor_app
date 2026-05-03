@@ -11,8 +11,9 @@ class StorePatientSessionRequest extends FormRequest
         return [
             // Basic Information
             'session_date'  => ['required', 'date'],
-            'visit_type'    => ['required', 'in:new_visit,follow_up,emergency,consultation'],
-            'risk_status'   => ['nullable', 'in:stable,high_risk,monitor'],
+            'visit_type'     => ['required', 'in:new_visit,follow_up,emergency,consultation'],
+            'session_status' => ['nullable', 'in:completed,follow_up_required,in_progress'],
+            'risk_status'    => ['nullable', 'in:stable,high_risk,monitor'],
 
             // Vital Signs
             'bp'     => ['nullable', 'string', 'max:20'],
