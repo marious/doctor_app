@@ -4,6 +4,7 @@ namespace Modules\Sessions\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Users\Models\User;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -60,5 +61,12 @@ class PatientSession extends Model implements HasMedia
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
+    }
+
+    public function symptoms(): Attribute
+    {
+        return Attribute::make(
+            get: fn (string $value) => explode(',', $value)
+        );
     }
 }
