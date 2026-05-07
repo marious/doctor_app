@@ -13,6 +13,7 @@ class PatientSessionResource extends CustomResource
             'id'           => $this->id,
             'patient_id'   => $this->patient_id,
             'session_date' => $this->session_date?->toDateString(),
+            'session_status' => $this->session_status,
             'visit_type'   => $this->visit_type,
             'risk_status'  => $this->risk_status,
 
