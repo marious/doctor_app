@@ -181,6 +181,36 @@ class PatientSessionController extends Controller
         ]);
     }
 
+    /**
+     * GET /doctor/patients/{patient}/sessions/dropdown
+     * Lightweight session list for prescription form dropdowns.
+     */
+    public function dropdown(User $patient): JsonResponse
+    {
+        abort_if($patient->role_id !== 2, 404);
+
+        $sessions = PatientSession::where('patient_id', $patient->id)
+            ->orderByDesc('session_date')
+            ->get(['id', 'visit_type', 'session_date']);
+
+        $visitTypeLabels = [
+            'new_visit'    => 'New Visit',
+            'follow_up'    => 'Follow-Up',
+            'emergency'    => 'Emergency',
+            'consultation' => 'Routine Check',
+        ];
+
+        $data = $sessions->map(fn($s) => [
+            'id'    => $s->id,
+            'label' => ($visitTypeLabels[$s->visit_type] ?? ucfirst($s->visit_type ?? '')) . ' — ' . $s->session_date?->format('M d, Y'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
+    }
+
     // ─── Private Helpers ─────────────────────────────────────────────────────
 
     private function attachFiles(PatientSession $session, $request, string $field, string $collection): void

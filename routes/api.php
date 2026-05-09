@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
+use App\Http\Controllers\Api\PatientPrescriptionController;
 use App\Http\Controllers\Api\PatientSessionController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\ArticleController;
@@ -154,10 +155,18 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
 
                 // Clinical sessions
+                Route::get('/{patient}/sessions/dropdown', [PatientSessionController::class, 'dropdown']);
                 Route::get('/{patient}/sessions', [PatientSessionController::class, 'index']);
                 Route::post('/{patient}/sessions', [PatientSessionController::class, 'store']);
                 Route::get('/{patient}/sessions/{session}', [PatientSessionController::class, 'show']);
                 Route::post('/{patient}/sessions/{session}', [PatientSessionController::class, 'update']);
+
+                // Prescriptions
+                Route::get('/{patient}/prescriptions', [PatientPrescriptionController::class, 'index']);
+                Route::post('/{patient}/prescriptions', [PatientPrescriptionController::class, 'store']);
+                Route::post('/{patient}/prescriptions/{prescription}', [PatientPrescriptionController::class, 'update']);
+                Route::post('/{patient}/prescriptions/{prescription}/stop', [PatientPrescriptionController::class, 'stop']);
+                Route::delete('/{patient}/prescriptions/{prescription}', [PatientPrescriptionController::class, 'destroy']);
             });
 
             //--------------------------------------------------- Doctor Appointments --------------------------------------------------
