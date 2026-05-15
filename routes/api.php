@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
+use App\Http\Controllers\Api\ClinicServiceController;
 use App\Http\Controllers\Api\PatientLabResultController;
 use App\Http\Controllers\Api\PatientUltrasoundFindingController;
 use App\Http\Controllers\Api\PatientPrescriptionController;
@@ -188,6 +189,15 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/{appointment}/approve', [DoctorAppointmentController::class, 'approve']);
                 Route::post('/{appointment}/reject', [DoctorAppointmentController::class, 'reject']);
                 Route::post('/{appointment}/reschedule', [DoctorAppointmentController::class, 'reschedule']);
+            });
+
+            //--------------------------------------------------- Services & Pricing --------------------------------------------------
+            Route::prefix('services')->group(function () {
+                Route::get('/categories', [ClinicServiceController::class, 'categories']);
+                Route::get('/', [ClinicServiceController::class, 'index']);
+                Route::post('/', [ClinicServiceController::class, 'store']);
+                Route::post('/{service}', [ClinicServiceController::class, 'update']);
+                Route::delete('/{service}', [ClinicServiceController::class, 'destroy']);
             });
 
             //--------------------------------------------------- Availability --------------------------------------------------
