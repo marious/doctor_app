@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
+use App\Http\Controllers\Api\PatientLabResultController;
 use App\Http\Controllers\Api\PatientPrescriptionController;
 use App\Http\Controllers\Api\PatientSessionController;
 use App\Http\Controllers\Api\AdvertisementController;
@@ -160,6 +161,11 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/{patient}/sessions', [PatientSessionController::class, 'store']);
                 Route::get('/{patient}/sessions/{session}', [PatientSessionController::class, 'show']);
                 Route::post('/{patient}/sessions/{session}', [PatientSessionController::class, 'update']);
+
+                // Lab results (dedicated uploads + merged from sessions)
+                Route::get('/{patient}/lab-results', [PatientLabResultController::class, 'index']);
+                Route::post('/{patient}/lab-results', [PatientLabResultController::class, 'store']);
+                Route::delete('/{patient}/lab-results/{labResult}', [PatientLabResultController::class, 'destroy']);
 
                 // Prescriptions
                 Route::get('/{patient}/prescriptions', [PatientPrescriptionController::class, 'index']);
