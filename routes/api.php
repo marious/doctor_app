@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
 use App\Http\Controllers\Api\PatientLabResultController;
+use App\Http\Controllers\Api\PatientUltrasoundFindingController;
 use App\Http\Controllers\Api\PatientPrescriptionController;
 use App\Http\Controllers\Api\PatientSessionController;
 use App\Http\Controllers\Api\AdvertisementController;
@@ -161,6 +162,11 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/{patient}/sessions', [PatientSessionController::class, 'store']);
                 Route::get('/{patient}/sessions/{session}', [PatientSessionController::class, 'show']);
                 Route::post('/{patient}/sessions/{session}', [PatientSessionController::class, 'update']);
+
+                // Ultrasound findings (dedicated uploads + merged from sessions)
+                Route::get('/{patient}/ultrasound-findings', [PatientUltrasoundFindingController::class, 'index']);
+                Route::post('/{patient}/ultrasound-findings', [PatientUltrasoundFindingController::class, 'store']);
+                Route::delete('/{patient}/ultrasound-findings/{ultrasoundFinding}', [PatientUltrasoundFindingController::class, 'destroy']);
 
                 // Lab results (dedicated uploads + merged from sessions)
                 Route::get('/{patient}/lab-results', [PatientLabResultController::class, 'index']);
