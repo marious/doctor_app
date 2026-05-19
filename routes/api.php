@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\PatientDirectoryController;
 use App\Http\Controllers\Api\PatientOverviewController;
 use App\Http\Controllers\Api\ClinicServiceController;
 use App\Http\Controllers\Api\PatientLabResultController;
+use App\Http\Controllers\Api\PatientPelvicExaminationController;
 use App\Http\Controllers\Api\PatientUltrasoundFindingController;
 use App\Http\Controllers\Api\PatientPrescriptionController;
 use App\Http\Controllers\Api\PatientSessionController;
@@ -175,6 +176,11 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::get('/{patient}/lab-results', [PatientLabResultController::class, 'index']);
                 Route::post('/{patient}/lab-results', [PatientLabResultController::class, 'store']);
                 Route::delete('/{patient}/lab-results/{labResult}', [PatientLabResultController::class, 'destroy']);
+
+                // Pelvic examinations (dedicated uploads + merged from sessions)
+                Route::get('/{patient}/pelvic-examinations', [PatientPelvicExaminationController::class, 'index']);
+                Route::post('/{patient}/pelvic-examinations', [PatientPelvicExaminationController::class, 'store']);
+                Route::delete('/{patient}/pelvic-examinations/{pelvicExamination}', [PatientPelvicExaminationController::class, 'destroy']);
 
                 // Prescriptions
                 Route::get('/{patient}/prescriptions', [PatientPrescriptionController::class, 'index']);
