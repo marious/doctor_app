@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
+use App\Http\Controllers\Api\PatientOverviewController;
 use App\Http\Controllers\Api\ClinicServiceController;
 use App\Http\Controllers\Api\PatientLabResultController;
 use App\Http\Controllers\Api\PatientUltrasoundFindingController;
@@ -155,6 +156,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::prefix('patients')->group(function () {
                 Route::get('/', [PatientDirectoryController::class, 'index']);
                 Route::get('/{patient}', [PatientDirectoryController::class, 'show']);
+                Route::get('/{patient}/overview', PatientOverviewController::class);
                 Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
 
                 // Clinical sessions
