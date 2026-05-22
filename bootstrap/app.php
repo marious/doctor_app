@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AlwaysAcceptJson;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsAssistant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,7 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prependToGroup('api', AlwaysAcceptJson::class);
         $middleware->alias([
-            'admin' => EnsureUserIsAdmin::class,
+            'admin'     => EnsureUserIsAdmin::class,
+            'assistant' => EnsureUserIsAssistant::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -38,7 +38,7 @@ class DoctorAppointmentController extends Controller
             $query->where('appointment_date', $request->date);
         }
 
-        $appointments = $query->paginate($request->integer('per_page', 30));
+        $appointments = $query->paginate($request->integer('per_page', 500));
 
         return response()->json([
             'success' => true,

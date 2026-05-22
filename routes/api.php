@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
+use App\Http\Controllers\Api\AssistantPatientSearchController;
 use App\Http\Controllers\Api\ClinicServiceController;
+use App\Http\Controllers\Api\PatientServiceRegistrationController;
 use App\Http\Controllers\Api\PatientLabResultController;
 use App\Http\Controllers\Api\PatientUltrasoundFindingController;
 use App\Http\Controllers\Api\PatientPrescriptionController;
@@ -129,6 +131,33 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         Route::prefix('advs')->group(function () {
             Route::get('/', [AdvertisementController::class, 'index']);
             Route::get('/{advertisement}', [AdvertisementController::class, 'show']);
+        });
+
+        //--------------------------------------------------- Assistant --------------------------------------------------
+        Route::middleware(['assistant'])->prefix('assistant')->group(function () {
+
+            Route::prefix('appointments')->group(function () {
+                Route::get('/', [DoctorAppointmentController::class, 'index']);
+                Route::get('/{appointment}', [DoctorAppointmentController::class, 'show']);
+                Route::post('/{appointment}/approve', [DoctorAppointmentController::class, 'approve']);
+                Route::post('/{appointment}/reject', [DoctorAppointmentController::class, 'reject']);
+                Route::post('/{appointment}/reschedule', [DoctorAppointmentController::class, 'reschedule']);
+            });
+
+            // Patient search for registration form
+            Route::get('/patients/search', AssistantPatientSearchController::class);
+
+            // Active services for registration form dropdown
+            Route::get('/services', [ClinicServiceController::class, 'activeServices']);
+
+            // Service registrations & payments
+            Route::prefix('service-registrations')->group(function () {
+                Route::get('/', [PatientServiceRegistrationController::class, 'index']);
+                Route::post('/', [PatientServiceRegistrationController::class, 'store']);
+                Route::get('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'show']);
+                Route::delete('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'destroy']);
+            });
+
         });
 
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------

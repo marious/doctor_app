@@ -52,6 +52,23 @@ class ClinicServiceController extends Controller
     }
 
     /**
+     * GET /assistant/services
+     * Active services list for the registration form dropdown.
+     */
+    public function activeServices(): JsonResponse
+    {
+        $services = ClinicService::with('category')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => ClinicServiceResource::collection($services),
+        ]);
+    }
+
+    /**
      * POST /doctor/services
      * Create a new clinic service.
      */
