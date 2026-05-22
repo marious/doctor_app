@@ -7,6 +7,7 @@ use App\Http\Requests\Api\StorePatientServiceRegistrationRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\ServiceRegistrations\Models\PatientServicePayment;
 use Modules\ServiceRegistrations\Models\PatientServiceRegistration;
 use Modules\ServiceRegistrations\Resources\PatientServiceRegistrationResource;
 use Modules\Services\Models\ClinicService;
@@ -74,6 +75,15 @@ class PatientServiceRegistrationController extends Controller
             'amount_paid'      => $request->amount_paid,
             'registered_by'    => Auth::id(),
         ]);
+
+        // Record the initial payment as the first installment entry
+        if ((float) $request->amount_paid > 0) {
+            PatientServicePayment::create([
+                'registration_id' => $registration->id,
+                'amount'          => $request->amount_paid,
+                'payment_date'    => $request->service_date,
+            ]);
+        }
 
         return response()->json([
             'success' => true,

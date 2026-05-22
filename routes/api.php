@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
 use App\Http\Controllers\Api\AssistantPatientSearchController;
+use App\Http\Controllers\Api\PatientFinancialTimelineController;
+use App\Http\Controllers\Api\PatientServicePaymentController;
 use App\Http\Controllers\Api\PatientOverviewController;
 use App\Http\Controllers\Api\ClinicServiceController;
 use App\Http\Controllers\Api\PatientServiceRegistrationController;
@@ -152,12 +154,16 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             // Active services for registration form dropdown
             Route::get('/services', [ClinicServiceController::class, 'activeServices']);
 
+            // Patient financial timeline
+            Route::get('/patients/{patient}/financial-timeline', PatientFinancialTimelineController::class);
+
             // Service registrations & payments
             Route::prefix('service-registrations')->group(function () {
                 Route::get('/', [PatientServiceRegistrationController::class, 'index']);
                 Route::post('/', [PatientServiceRegistrationController::class, 'store']);
                 Route::get('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'show']);
                 Route::delete('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'destroy']);
+                Route::post('/{serviceRegistration}/payments', [PatientServicePaymentController::class, 'store']);
             });
 
         });

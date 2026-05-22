@@ -4,6 +4,7 @@ namespace Modules\ServiceRegistrations\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Services\Models\ClinicService;
 use Modules\Users\Models\User;
 
@@ -44,6 +45,20 @@ class PatientServiceRegistration extends Model
     public function registeredBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'registered_by');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(PatientServicePayment::class, 'registration_id')->orderBy('payment_date');
+    }
+
+    public function getPaymentStatusAttribute(): string
+    {
+        if ($this->amount_paid <= 0) {
+            return 'unpaid';
+        }
+
+        return $this->amount_paid >= $this->total_price ? 'paid' : 'partially_paid';
     }
 
     public function getRemainingAmountAttribute(): float
