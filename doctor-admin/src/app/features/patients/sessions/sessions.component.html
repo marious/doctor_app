@@ -1,0 +1,279 @@
+<!-- Stats Row -->
+<div class="stats-row">
+  <div class="stat-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#E8277D" stroke-width="1.8" stroke-linecap="round" width="20" height="20">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/>
+    </svg>
+    <div class="stat-num">{{ totalSessions }}</div>
+    <div class="stat-label">TOTAL SESSIONS</div>
+  </div>
+  <div class="stat-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round" width="20" height="20">
+      <path d="M8 2v3M16 2v3M3.5 9h17M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+    </svg>
+    <div class="stat-num">{{ thisMonth }}</div>
+    <div class="stat-label">THIS MONTH</div>
+  </div>
+  <div class="stat-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" width="20" height="20">
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14M22 4L12 14.01l-3-3"/>
+    </svg>
+    <div class="stat-num">{{ completed }}</div>
+    <div class="stat-label">COMPLETED</div>
+  </div>
+  <div class="stat-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" width="20" height="20">
+      <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-14v4l3 3"/>
+    </svg>
+    <div class="stat-num">{{ followUp }}</div>
+    <div class="stat-label">FOLLOW-UP</div>
+  </div>
+</div>
+
+<!-- New Session Modal -->
+@if (showForm()) {
+  <div class="modal-overlay" (click)="showForm.set(false)">
+    <div class="session-modal" (click)="$event.stopPropagation()">
+      <div class="session-modal-header">
+        <div>
+          <h3>{{ editingId() ? 'Edit Session' : 'New Patient Session' }}</h3>
+          <p>Record clinical visit details</p>
+        </div>
+        <button class="modal-close" (click)="showForm.set(false)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="session-modal-body">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                <path d="M8 2v3M16 2v3M3.5 9h17M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+              </svg>
+              BASIC INFORMATION
+            </div>
+            <div class="form-grid-2">
+              <div class="field">
+                <label>DATE</label>
+                <input type="date" formControlName="date" />
+              </div>
+              <div class="field">
+                <label>VISIT TYPE</label>
+                <select formControlName="visit_type">
+                  @for (t of visitTypes; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#E8277D" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              VITAL SIGNS
+            </div>
+            <div class="form-grid-4">
+              <div class="field"><label>BP</label><input formControlName="bp" placeholder="120/80" /></div>
+              <div class="field"><label>HR</label><input formControlName="hr" placeholder="72" type="number" /></div>
+              <div class="field"><label>TEMP</label><input formControlName="temp" placeholder="98.6°F" /></div>
+              <div class="field"><label>WEIGHT</label><input formControlName="weight" placeholder="68 kg" /></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+              </svg>
+              CLINICAL DETAILS
+            </div>
+            <div class="field">
+              <label>SYMPTOMS (COMMA SEPARATED)</label>
+              <input formControlName="symptoms" placeholder="e.g. Headache, Nausea" />
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>DIAGNOSIS *</label>
+              <textarea formControlName="diagnosis" rows="3" placeholder="Enter primary diagnosis..."></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>TREATMENT PLAN</label>
+              <textarea formControlName="treatment_plan" rows="3" placeholder="Treatment recommendations..."></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>NOTES</label>
+              <textarea formControlName="notes" rows="3" placeholder="Additional notes..."></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>FOLLOW-UP DATE (OPTIONAL)</label>
+              <input type="date" formControlName="follow_up_date" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showForm.set(false)">Cancel</button>
+            <button type="submit" class="btn-save-session" [disabled]="saving() || form.invalid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+              </svg>
+              {{ saving() ? 'Saving…' : 'Save Session' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Timeline -->
+@if (loading()) {
+  <div class="loading">Loading sessions…</div>
+} @else {
+  <div class="timeline-card">
+    <div class="timeline-header">
+      <div>
+        <h4>Session Timeline</h4>
+        <p>Chronological medical visit history</p>
+      </div>
+      <span class="session-count">{{ totalSessions }} Sessions</span>
+    </div>
+
+    <div class="timeline-list">
+      @for (s of sessions(); track s.id) {
+        <div class="session-item">
+          <div class="session-row" (click)="toggleExpand(s.id)">
+            <div class="session-main">
+              <span class="session-date">{{ s.date | date:'MMM d, y' }}</span>
+              @if (s.visit_type) {
+                <span class="visit-type-badge" [ngClass]="visitTypeClass(s.visit_type)">
+                  {{ s.visit_type | uppercase }}
+                </span>
+              }
+              <span class="session-diag">{{ s.diagnosis ?? 'No diagnosis recorded' }}</span>
+            </div>
+            <div class="session-meta">
+              @if (s.status) {
+                <span class="session-status" [ngClass]="statusClass(s.status)">
+                  {{ statusLabel(s.status) | uppercase }}
+                </span>
+              }
+              <button class="icon-btn-sm" (click)="openEdit(s); $event.stopPropagation()" title="Edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="icon-btn-sm expand-btn" [class.expanded]="expandedId() === s.id">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Expanded content -->
+          @if (expandedId() === s.id) {
+            <div class="session-expanded">
+              @if (s.bp || s.hr || s.temp || s.weight) {
+                <div class="vitals-row">
+                  @if (s.bp) {
+                    <div class="vital-chip vital-bp">
+                      <span class="vital-label">BP</span>
+                      <span class="vital-val">{{ s.bp }}</span>
+                    </div>
+                  }
+                  @if (s.hr) {
+                    <div class="vital-chip vital-hr">
+                      <span class="vital-label">HR</span>
+                      <span class="vital-val">{{ s.hr }}</span>
+                    </div>
+                  }
+                  @if (s.temp) {
+                    <div class="vital-chip vital-temp">
+                      <span class="vital-label">TEMP</span>
+                      <span class="vital-val">{{ s.temp }}</span>
+                    </div>
+                  }
+                  @if (s.weight) {
+                    <div class="vital-chip vital-weight">
+                      <span class="vital-label">WEIGHT</span>
+                      <span class="vital-val">{{ s.weight }}</span>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (s.symptoms) {
+                <div class="exp-section">
+                  <span class="exp-label">SYMPTOMS</span>
+                  <div class="symptoms-row">
+                    @for (sym of s.symptoms.split(','); track sym) {
+                      <span class="symptom-tag">{{ sym.trim() }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (s.diagnosis) {
+                <div class="exp-section">
+                  <span class="exp-label">DIAGNOSIS</span>
+                  <p class="exp-text">{{ s.diagnosis }}</p>
+                </div>
+              }
+
+              @if (s.treatment_plan) {
+                <div class="exp-section">
+                  <span class="exp-label">TREATMENT PLAN</span>
+                  <p class="exp-text">{{ s.treatment_plan }}</p>
+                </div>
+              }
+
+              @if (s.notes) {
+                <div class="exp-section">
+                  <span class="exp-label">DOCTOR NOTES</span>
+                  <p class="exp-text exp-italic">{{ s.notes }}</p>
+                </div>
+              }
+
+              @if (s.follow_up_date) {
+                <div class="followup-banner">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                    <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-14v4l3 3"/>
+                  </svg>
+                  <div>
+                    <span class="fu-label">FOLLOW-UP SCHEDULED</span>
+                    <span class="fu-date">{{ s.follow_up_date | date:'MMM d, y' }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="empty-tab" style="padding: 48px">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" width="48" height="48">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/>
+            </svg>
+          </div>
+          <p class="empty-title">NO SESSIONS RECORDED</p>
+          <p class="empty-msg">Start by adding a new patient session.</p>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- FAB -->
+<button class="fab-add" (click)="openNew()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+  ADD NEW SESSION
+</button>

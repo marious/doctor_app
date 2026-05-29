@@ -1,0 +1,100 @@
+@use 'styles/shared' as *;
+
+.availability-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+
+.calendar-panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+
+  h3 { margin: 0 0 16px; font-size: 15px; font-weight: 700; color: #1a202c; }
+}
+
+.day-list { display: flex; flex-direction: column; gap: 4px; max-height: 500px; overflow-y: auto; }
+
+.day-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #4a5568;
+  transition: all 0.15s;
+
+  &:hover { background: #f7fafc; }
+  &.selected { border-color: #4299e1; background: #ebf8ff; color: #2b6cb0; }
+  &.available .day-dot { background: #48bb78; }
+}
+
+.day-date { font-weight: 500; }
+.day-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; &.green { background: #48bb78; } }
+
+.day-editor {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+.day-editor-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+  h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1a202c; }
+}
+
+.saved-badge {
+  background: #c6f6d5; color: #276749;
+  padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
+}
+
+.slot-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f7fafc;
+  flex-wrap: wrap;
+}
+
+.slot-field { min-width: 120px; }
+
+.slot-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+  font-size: 14px;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.remove-slot { color: #e53e3e; align-self: flex-end; margin-bottom: 2px; }
+
+.btn-add-slot {
+  background: none;
+  border: 1.5px dashed #cbd5e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #718096;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 20px;
+  &:hover { border-color: #4299e1; color: #4299e1; background: #ebf8ff; }
+}
+
+.empty-state-sm { color: #a0aec0; font-size: 13px; text-align: center; padding: 20px 0; }

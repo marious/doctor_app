@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
 use App\Http\Controllers\Api\PatientDirectoryController;
@@ -170,6 +171,12 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------
         Route::middleware(['admin'])->prefix('doctor')->group(function() {
+            // ── Staff management (create doctor / assistant accounts) ──────
+            Route::get('/staff',           [StaffController::class, 'index']);
+            Route::post('/staff',          [StaffController::class, 'store']);
+            Route::post('/staff/{user}',  [StaffController::class, 'update']);
+            Route::delete('/staff/{user}', [StaffController::class, 'destroy']);
+
             Route::prefix('articles')->group(function () {
                 Route::post('/', [ArticleController::class, 'store']);
                 Route::post('/{article}', [ArticleController::class, 'update']);

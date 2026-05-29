@@ -1,0 +1,311 @@
+// Shared styles used across feature components
+
+$primary:       #E8277D;
+$primary-bg:    #FEF0F7;
+$primary-hover: #C91E69;
+
+.page { max-width: 1200px; }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  h2 { font-size: 24px; font-weight: 700; color: #1A202C; margin: 0 0 4px; }
+  .subtitle { font-size: 13px; color: #718096; margin: 0; }
+}
+
+.table-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #F0F0F0;
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    text-align: left;
+    padding: 13px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #718096;
+    background: #FAFAFA;
+    border-bottom: 1px solid #F0F0F0;
+  }
+
+  td {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #2D3748;
+    border-bottom: 1px solid #F8F8F8;
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFAFA; }
+}
+
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: $primary-bg;
+  color: $primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-stable    { background: #DBEAFE; color: #1D4ED8; }
+.badge-monitor   { background: #FEF3C7; color: #92400E; }
+.badge-high-risk { background: #FEE2E2; color: #991B1B; }
+.badge-success   { background: #D1FAE5; color: #065F46; }
+.badge-warning   { background: #FEF3C7; color: #92400E; }
+.badge-danger    { background: #FEE2E2; color: #991B1B; }
+.badge-default   { background: #EDF2F7; color: #4A5568; }
+.badge-blue      { background: #DBEAFE; color: #1D4ED8; }
+
+.btn-link {
+  color: $primary;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  &:hover { background: $primary-bg; }
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 16px;
+  &:hover { background: #EDF2F7; }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+
+  button {
+    padding: 8px 18px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #4A5568;
+    &:hover:not(:disabled) { background: #EDF2F7; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+
+  span { font-size: 13px; color: #718096; }
+}
+
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: #718096;
+  font-size: 14px;
+}
+
+.empty {
+  text-align: center !important;
+  color: #A0AEC0;
+  padding: 40px !important;
+}
+
+.alert-error {
+  background: #FFF5F5;
+  border: 1px solid #FED7D7;
+  color: #C53030;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.alert-success {
+  background: #F0FFF4;
+  border: 1px solid #C6F6D5;
+  color: #276749;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+// Forms
+.form-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #F0F0F0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label { font-size: 13px; font-weight: 600; color: #4A5568; }
+
+  input, textarea, select {
+    padding: 9px 12px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.15s;
+    font-family: inherit;
+
+    &:focus { border-color: $primary; }
+    &.invalid { border-color: #FC8181; }
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+}
+
+.field-error { font-size: 12px; color: #E53E3E; }
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  padding: 9px 22px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: $primary-hover; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-secondary {
+  padding: 9px 22px;
+  background: #EDF2F7;
+  color: #4A5568;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { background: #E2E8F0; }
+}
+
+.btn-danger {
+  padding: 9px 22px;
+  background: #E53E3E;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { background: #C53030; }
+}
+
+.input-search {
+  padding: 9px 14px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  min-width: 240px;
+  &:focus { border-color: $primary; }
+}
+
+// Tabs
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #E2E8F0;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #718096;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+
+  &.active {
+    color: $primary;
+    border-bottom-color: $primary;
+  }
+
+  &:hover { color: #2D3748; }
+}
+
+// Modal
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  max-height: 90vh;
+  overflow-y: auto;
+
+  h3 { margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1A202C; }
+}

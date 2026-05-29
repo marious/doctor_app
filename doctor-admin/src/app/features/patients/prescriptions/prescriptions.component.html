@@ -1,0 +1,162 @@
+<div class="rx-header">
+  <div>
+    <h3>Prescriptions</h3>
+    <p>Manage and track patient medication history</p>
+  </div>
+  <button class="btn-add-med" (click)="openNew()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    ADD MEDICATION
+  </button>
+</div>
+
+<!-- New Prescription Modal -->
+@if (showForm()) {
+  <div class="modal-overlay" (click)="showForm.set(false)">
+    <div class="rx-modal" (click)="$event.stopPropagation()">
+
+      <div class="rx-modal-header">
+        <div class="rx-modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" width="80" height="80">
+            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"/><path d="M9 12h6M12 9v6"/>
+          </svg>
+        </div>
+        <div class="rx-modal-title">
+          <h3>{{ editingId() ? 'Edit Prescription' : 'New Prescription' }}</h3>
+          <p>Prescribe new medication and set schedule</p>
+        </div>
+        <button class="modal-close" (click)="showForm.set(false)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="rx-modal-body">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="form-grid">
+            <div class="field">
+              <label>MEDICATION NAME</label>
+              <input formControlName="medication_name" placeholder="e.g. Prenatal Vitamins" />
+            </div>
+            <div class="field">
+              <label>DOSAGE</label>
+              <input formControlName="dosage" placeholder="e.g. 500mg or 1 tablet" />
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>FREQUENCY</label>
+              <select formControlName="frequency">
+                <option value="">Select frequency…</option>
+                <option>Once daily</option>
+                <option>Twice daily</option>
+                <option>Three times daily</option>
+                <option>Every 8 hours</option>
+                <option>As needed</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>START DATE</label>
+              <input type="date" formControlName="start_date" />
+            </div>
+            <div class="field">
+              <label>END DATE</label>
+              <input type="date" formControlName="end_date" />
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>SPECIAL INSTRUCTIONS</label>
+              <textarea formControlName="notes" rows="3" placeholder="Take with food, avoid alcohol, etc."></textarea>
+            </div>
+          </div>
+
+          <div class="rx-modal-footer">
+            <button type="button" class="btn-cancel" (click)="showForm.set(false)">CANCEL</button>
+            <button type="submit" class="btn-save-rx" [disabled]="saving() || form.invalid">
+              {{ saving() ? 'Saving…' : 'SAVE PRESCRIPTION' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="deleteTarget() !== null"
+  title="Delete Prescription"
+  message="Are you sure you want to delete this prescription?"
+  (confirm)="doDelete()"
+  (cancel)="deleteTarget.set(null)"
+/>
+
+@if (loading()) {
+  <div class="loading">Loading…</div>
+} @else {
+  <div class="rx-list">
+    @for (p of prescriptions(); track p.id) {
+      <div class="rx-card" [class.rx-stopped]="p.status === 'stopped'">
+        <div class="rx-pill-icon" [class.rx-icon-stopped]="p.status === 'stopped'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18">
+            <path d="M10.5 20.5L3.5 13.5a5 5 0 017-7l7 7a5 5 0 01-7 7zM8.5 8.5l7 7"/>
+          </svg>
+        </div>
+
+        <div class="rx-body">
+          <div class="rx-top">
+            <div class="rx-name-row">
+              <strong class="rx-name">{{ p.medication_name }}</strong>
+              <span class="rx-status-badge" [class.rx-active]="p.status === 'active'" [class.rx-completed]="p.status === 'stopped'">
+                {{ p.status === 'active' ? 'ACTIVE' : 'COMPLETED' }}
+              </span>
+            </div>
+            <div class="rx-actions">
+              @if (p.status === 'active') {
+                <button class="btn-stop" (click)="stopPrescription(p.id)">STOP</button>
+              }
+              <button class="icon-btn-sm" (click)="openEdit(p)" title="Edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="icon-btn-sm" (click)="confirmDelete(p.id)" title="Delete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="rx-meta">
+            <span class="rx-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              {{ p.dosage }}
+            </span>
+            <span class="rx-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-14v4l3 3"/></svg>
+              {{ p.frequency }}
+            </span>
+            <span class="rx-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><path d="M8 2v3M16 2v3M3.5 9h17M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+              {{ p.start_date | date:'MMM d, y' }}{{ p.end_date ? ' - ' + (p.end_date | date:'MMM d, y') : '' }}
+            </span>
+          </div>
+
+          @if (p.notes) {
+            <div class="rx-notes">"{{ p.notes }}"</div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-tab">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" width="48" height="48">
+            <path d="M10.5 20.5L3.5 13.5a5 5 0 017-7l7 7a5 5 0 01-7 7zM8.5 8.5l7 7"/>
+          </svg>
+        </div>
+        <p class="empty-title">NO PRESCRIPTIONS</p>
+        <p class="empty-msg">No medications have been prescribed for this patient yet.</p>
+      </div>
+    }
+  </div>
+}

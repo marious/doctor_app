@@ -1,0 +1,120 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Appointments</h2>
+      <p class="subtitle">{{ total() }} total appointments</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading appointments…</div>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of appointments(); track a.id) {
+            <tr>
+              <td class="name-cell">
+                <div class="avatar-sm">{{ a.patient.name.charAt(0) }}</div>
+                <span>{{ a.patient.name }}</span>
+              </td>
+              <td>{{ a.date | date:'mediumDate' }}</td>
+              <td>{{ a.time }}</td>
+              <td>
+                <span class="badge" [ngClass]="statusClass(a.status)">{{ a.status }}</span>
+              </td>
+              <td class="action-cell">
+                @if (a.status === 'pending') {
+                  <button class="btn-approve" (click)="openAction(a, 'approve')">Approve</button>
+                  <button class="btn-reject" (click)="openAction(a, 'reject')">Reject</button>
+                }
+                <button class="btn-link" (click)="openAction(a, 'reschedule')">Reschedule</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="empty">No appointments</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button (click)="prevPage()" [disabled]="page() === 1">← Prev</button>
+      <span>Page {{ page() }} of {{ lastPage() }}</span>
+      <button (click)="nextPage()" [disabled]="page() === lastPage()">Next →</button>
+    </div>
+  }
+</div>
+
+<!-- Approve Modal -->
+@if (action() === 'approve') {
+  <div class="modal-overlay" (click)="closeAction()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Approve Appointment</h3>
+      <p>Approve appointment for <strong>{{ selectedAppointment()?.patient?.name }}</strong> on {{ selectedAppointment()?.date | date:'mediumDate' }}?</p>
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="closeAction()">Cancel</button>
+        <button class="btn-primary" (click)="doApprove()" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Approve' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reject Modal -->
+@if (action() === 'reject') {
+  <div class="modal-overlay" (click)="closeAction()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Reject Appointment</h3>
+      <form [formGroup]="rejectForm" (ngSubmit)="doReject()">
+        <div class="field">
+          <label>Reason (optional)</label>
+          <textarea formControlName="reason" rows="3" placeholder="Reason for rejection…"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="closeAction()">Cancel</button>
+          <button type="submit" class="btn-danger" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Reject' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Reschedule Modal -->
+@if (action() === 'reschedule') {
+  <div class="modal-overlay" (click)="closeAction()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Reschedule Appointment</h3>
+      <form [formGroup]="rescheduleForm" (ngSubmit)="doReschedule()">
+        <div class="form-grid">
+          <div class="field">
+            <label>New Date *</label>
+            <input type="date" formControlName="date" />
+          </div>
+          <div class="field">
+            <label>New Time *</label>
+            <input type="time" formControlName="time" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="closeAction()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Reschedule' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

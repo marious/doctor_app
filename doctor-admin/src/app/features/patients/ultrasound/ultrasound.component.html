@@ -1,0 +1,76 @@
+<div class="section-header">
+  <div>
+    <h3>Ultrasound Findings</h3>
+    <p>Upload and manage patient ultrasound findings</p>
+  </div>
+  <button class="btn-add-file" (click)="showForm.set(true)">+ ADD NEW ULTRA SOUND FINDINGS</button>
+</div>
+
+@if (showForm()) {
+  <div class="modal-overlay" (click)="showForm.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Upload Ultrasound Finding</h3>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label>File *</label>
+          <input type="file" (change)="onFileChange($event)" accept="image/*,.pdf,.dcm" />
+        </div>
+        <div class="field" style="margin-top:16px">
+          <label>Notes</label>
+          <textarea formControlName="notes" rows="3" placeholder="Optional notes…"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="showForm.set(false)">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving() || !selectedFile">
+            {{ saving() ? 'Uploading…' : 'Upload' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="deleteTarget() !== null"
+  title="Delete Ultrasound Finding"
+  message="Are you sure you want to delete this finding?"
+  (confirm)="doDelete()"
+  (cancel)="deleteTarget.set(null)"
+/>
+
+@if (loading()) {
+  <div class="loading">Loading…</div>
+} @else if (findings().length === 0) {
+  <div class="empty-tab">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" width="48" height="48">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+      </svg>
+    </div>
+    <p class="empty-title">NO RECORDS FOUND</p>
+    <p class="empty-msg">There are no symptom logs entries logged for this patient in the current session.</p>
+    <button class="btn-add-record" (click)="showForm.set(true)">+ ADD NEW ULTRA SOUND FINDINGS</button>
+  </div>
+} @else {
+  <div class="files-grid">
+    @for (f of findings(); track f.id) {
+      <div class="file-card">
+        <div class="file-doc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#718096" stroke-width="1.5" stroke-linecap="round" width="20" height="20">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <a [href]="f.file_url" target="_blank" class="file-link">View File</a>
+          @if (f.notes) { <p class="file-notes">{{ f.notes }}</p> }
+          <span class="file-date">{{ f.created_at | date:'mediumDate' }}</span>
+        </div>
+        <button class="icon-btn-sm delete-btn" (click)="confirmDelete(f.id)" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </div>
+    }
+  </div>
+}

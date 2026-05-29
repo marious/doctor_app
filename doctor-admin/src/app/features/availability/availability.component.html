@@ -1,0 +1,78 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Availability</h2>
+      <p class="subtitle">Manage your available time slots</p>
+    </div>
+  </div>
+
+  <div class="availability-layout">
+    <!-- Calendar sidebar -->
+    <div class="calendar-panel">
+      <h3>Calendar</h3>
+      @if (loadingCalendar()) {
+        <div class="loading">Loading…</div>
+      } @else {
+        <div class="day-list">
+          @for (d of calendarDays(); track d.date) {
+            <button
+              class="day-btn"
+              [class.selected]="selectedDate() === d.date"
+              [class.available]="d.avail"
+              (click)="loadDay(d.date)"
+            >
+              <span class="day-date">{{ d.date | date:'EEE, MMM d' }}</span>
+              <span class="day-dot" [class.green]="d.avail"></span>
+            </button>
+          } @empty {
+            <div class="empty-state-sm">No calendar data</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Day editor -->
+    <div class="day-editor">
+      <div class="day-editor-header">
+        <h3>{{ selectedDate() | date:'fullDate' }}</h3>
+        @if (saved()) {
+          <span class="saved-badge">✓ Saved</span>
+        }
+      </div>
+
+      @if (loadingDay()) {
+        <div class="loading">Loading slots…</div>
+      } @else {
+        <form [formGroup]="slotsForm" (ngSubmit)="save()">
+          <div formArrayName="slots">
+            @for (slot of slots.controls; track $index; let i = $index) {
+              <div [formGroupName]="i" class="slot-row">
+                <div class="field slot-field">
+                  <label>Start</label>
+                  <input type="time" formControlName="start_time" />
+                </div>
+                <div class="field slot-field">
+                  <label>End</label>
+                  <input type="time" formControlName="end_time" />
+                </div>
+                <div class="slot-check">
+                  <input type="checkbox" formControlName="is_available" [id]="'avail-' + i" />
+                  <label [for]="'avail-' + i">Available</label>
+                </div>
+                <button type="button" class="btn-icon remove-slot" (click)="removeSlot(i)">✕</button>
+              </div>
+            }
+          </div>
+
+          <button type="button" class="btn-add-slot" (click)="addSlot()">+ Add Slot</button>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : 'Save Availability' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,177 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="dir-header">
+    <div>
+      <h2>Staff Accounts</h2>
+      <p class="subtitle">Manage doctor and assistant accounts.</p>
+    </div>
+    <button class="btn-add-staff" (click)="openCreate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add Account
+    </button>
+  </div>
+
+  @if (success()) { <div class="alert-success">{{ success() }}</div> }
+  @if (error() && !showForm()) { <div class="alert-error">{{ error() }}</div> }
+
+  <!-- Create / Edit Modal -->
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="showForm.set(false)">
+      <div class="staff-modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <div>
+            <h3>{{ isEditing ? 'Edit Account' : 'New Account' }}</h3>
+            <p>{{ isEditing ? 'Update staff member details' : 'Create a doctor or assistant login' }}</p>
+          </div>
+          <button class="modal-close" (click)="showForm.set(false)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          @if (error()) { <div class="alert-error" style="margin-bottom:16px">{{ error() }}</div> }
+
+          <form [formGroup]="form" (ngSubmit)="submit()">
+
+            <!-- Type toggle -->
+            <div class="type-toggle">
+              <button type="button" class="type-btn" [class.selected]="form.value.type === 'doctor'"
+                      (click)="form.patchValue({ type: 'doctor' })">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="16" height="16">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/>
+                </svg>
+                Doctor
+              </button>
+              <button type="button" class="type-btn" [class.selected]="form.value.type === 'assistant'"
+                      (click)="form.patchValue({ type: 'assistant' })">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="16" height="16">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+                Assistant
+              </button>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Full Name *</label>
+                <input formControlName="name" placeholder="e.g. Dr. Sarah Ahmed" />
+              </div>
+              <div class="field">
+                <label>Phone *</label>
+                <input formControlName="phone" placeholder="+1 234 567 890" />
+              </div>
+              <div class="field" style="grid-column:1/-1">
+                <label>Email *</label>
+                <input type="email" formControlName="email" placeholder="doctor@hercare.com" />
+              </div>
+              <div class="field" style="grid-column:1/-1">
+                <label>
+                  Password
+                  @if (!isEditing) { <span class="required-mark">*</span> }
+                  @if (isEditing) { <span class="optional-hint">(leave blank to keep current)</span> }
+                </label>
+                <input type="password" formControlName="password"
+                       [placeholder]="isEditing ? '••••••••' : 'Min. 8 characters'" />
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" (click)="showForm.set(false)">Cancel</button>
+              <button type="submit" class="btn-create" [disabled]="saving() || form.invalid">
+                @if (saving()) {
+                  {{ isEditing ? 'Saving…' : 'Creating…' }}
+                } @else {
+                  {{ isEditing ? 'Save Changes' : 'Create ' + (form.value.type === 'doctor' ? 'Doctor' : 'Assistant') }}
+                }
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete confirm modal -->
+  @if (deleteTarget()) {
+    <div class="modal-overlay" (click)="deleteTarget.set(null)">
+      <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <h3>Remove Account</h3>
+        <p>Are you sure you want to remove <strong>{{ deleteTarget()!.name }}</strong>? This cannot be undone.</p>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="deleteTarget.set(null)">Cancel</button>
+          <button class="btn-danger" (click)="doDelete()" [disabled]="deleting()">
+            {{ deleting() ? 'Removing…' : 'Remove Account' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Staff table -->
+  @if (loading()) {
+    <div class="loading">Loading staff…</div>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of staff(); track m.id) {
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <div class="avatar-sm">{{ m.name.charAt(0) }}</div>
+                  <span>{{ m.name }}</span>
+                </div>
+              </td>
+              <td class="text-muted">{{ m.email }}</td>
+              <td class="text-muted">{{ m.phone }}</td>
+              <td>
+                <span class="badge" [ngClass]="typeClass(m.type)">{{ typeLabel(m.type) }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="m.active ? 'badge-stable' : 'badge-default'">
+                  {{ m.active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-edit" (click)="openEdit(m)" title="Edit account">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                  </button>
+                  <button class="btn-remove" (click)="confirmDelete(m)" title="Remove account">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
+                    </svg>
+                    Remove
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="empty">No staff accounts found.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

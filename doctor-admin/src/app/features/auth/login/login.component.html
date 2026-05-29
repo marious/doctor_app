@@ -1,0 +1,45 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <span class="logo">🩺</span>
+      <h1>Doctor Admin</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <div class="field">
+        <label>Phone Number</label>
+        <input
+          type="tel"
+          formControlName="phone_or_email"
+          placeholder="e.g. 01012345678"
+          [class.invalid]="form.get('phone_or_email')?.invalid && form.get('phone_or_email')?.touched"
+        />
+        @if (form.get('phone_or_email')?.invalid && form.get('phone_or_email')?.touched) {
+          <span class="field-error">Phone is required</span>
+        }
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input
+          type="password"
+          formControlName="password"
+          placeholder="Enter your password"
+          [class.invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+        />
+        @if (form.get('password')?.invalid && form.get('password')?.touched) {
+          <span class="field-error">Password must be at least 6 characters</span>
+        }
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading()">
+        @if (loading()) { Signing in... } @else { Sign In }
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,200 @@
+@if (loading()) {
+  <div class="loading">Loading patient…</div>
+} @else {
+@let p = patient();
+@if (p) {
+
+  <div class="detail-shell">
+
+    <!-- Left Patient Card -->
+    <div class="patient-card">
+      <div class="card-avatar-wrap">
+        <div class="card-avatar">{{ p.name.charAt(0) }}</div>
+        <div class="avatar-badge">
+          <svg viewBox="0 0 24 24" fill="white" width="10" height="10">
+            <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+          </svg>
+        </div>
+      </div>
+
+      <h3 class="card-name">{{ p.name }}</h3>
+      <p class="card-meta">{{ p.age ?? '—' }} years old • ID: P-{{ p.id }}</p>
+
+      <div class="card-badges">
+        <span class="badge" [ngClass]="riskClass(p.risk_status)">
+          {{ riskLabel(p.risk_status) | uppercase }}
+        </span>
+        @if (p.mode) {
+          <span class="badge badge-mode">{{ p.mode | titlecase | uppercase }}</span>
+        }
+      </div>
+
+      <div class="card-details">
+        <div class="card-detail-row">
+          <span class="detail-label">LAST VISIT</span>
+          <span class="detail-value">{{ p.last_visit | date:'MMM d, y' }}</span>
+        </div>
+        <div class="card-detail-row">
+          <span class="detail-label">PHONE</span>
+          <span class="detail-value">{{ p.phone }}</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <p class="qa-title">QUICK ACTIONS</p>
+        <button class="qa-primary" (click)="activeView.set('sessions')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          MOBILE SESSION VIEW
+        </button>
+        <button class="qa-item" (click)="activeView.set('profile'); activeTab.set('pelvic')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Pelvic Examination
+        </button>
+        <button class="qa-item" (click)="activeView.set('profile'); activeTab.set('ultrasound')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Ultrasound Findings
+        </button>
+        <button class="qa-item" (click)="activeView.set('profile'); activeTab.set('labs')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Upload Lab Results
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Content -->
+    <div class="detail-content">
+
+      @if (activeView() === 'profile') {
+        <!-- Profile Header -->
+        <div class="content-header">
+          <div class="header-left">
+            <a routerLink="/patients" class="back-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </a>
+            <div>
+              <h2>Patient Profile</h2>
+              <p class="header-sub">ID: {{ p.patient_code }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Tabs -->
+        <div class="content-tabs">
+          @for (tab of profileTabs; track tab.key) {
+            <button class="ctab" [class.active]="activeTab() === tab.key" (click)="activeTab.set(tab.key)">
+              {{ tab.label }}
+            </button>
+          }
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-panel">
+          @switch (activeTab()) {
+            @case ('overview') {
+              <div class="overview-body">
+                <!-- Pregnancy progress -->
+                @if (p.mode === 'pregnancy') {
+                  <div class="pregnancy-card">
+                    <div class="preg-header">
+                      <svg viewBox="0 0 24 24" fill="#E8277D" width="20" height="20">
+                        <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+                      </svg>
+                      <div>
+                        <h4>Pregnancy Progress</h4>
+                        <span class="preg-week">SECOND TRIMESTER</span>
+                      </div>
+                    </div>
+                    <div class="preg-bar-track">
+                      <div class="preg-bar-fill" style="width: 80%"></div>
+                    </div>
+                    <div class="preg-milestones">
+                      <span>Conception</span><span>T1</span><span>T2</span><span>T3</span><span>Birth</span>
+                    </div>
+                  </div>
+                }
+
+                <!-- Patient overview info -->
+                <div class="info-grid">
+                  <div class="info-card">
+                    <h5>Patient Details</h5>
+                    <div class="info-row"><span>Name</span><strong>{{ p.name }}</strong></div>
+                    <div class="info-row"><span>Phone</span><strong>{{ p.phone }}</strong></div>
+                    <div class="info-row"><span>Age</span><strong>{{ p.age ?? '—' }}</strong></div>
+                    <div class="info-row">
+                      <span>Risk Status</span>
+                      <span class="badge" [ngClass]="riskClass(p.risk_status)">{{ riskLabel(p.risk_status) }}</span>
+                    </div>
+                    <div class="info-row"><span>Last Visit</span><strong>{{ p.last_visit ?? '—' }}</strong></div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @case ('history') {
+              <div class="empty-tab">
+                <div class="empty-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" width="48" height="48">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                  </svg>
+                </div>
+                <p class="empty-title">NO RECORDS FOUND</p>
+                <p class="empty-msg">There are no medical history entries logged for this patient in the current session.</p>
+                <button class="btn-add-record">+ ADD NEW MEDICAL RECORD</button>
+              </div>
+            }
+
+            @case ('medications') {
+              <app-prescriptions [patientId]="patientId()" />
+            }
+
+            @case ('labs') {
+              <app-lab-results [patientId]="patientId()" />
+            }
+
+            @case ('ultrasound') {
+              <app-ultrasound [patientId]="patientId()" />
+            }
+
+            @case ('pelvic') {
+              <app-pelvic-exams [patientId]="patientId()" />
+            }
+          }
+        </div>
+
+      } @else {
+
+        <!-- Sessions View -->
+        <div class="content-header">
+          <div class="header-left">
+            <button class="back-btn" (click)="activeView.set('profile')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+            <div>
+              <h2>Patient Session</h2>
+              <p class="header-sub session-sub">P-{{ p.id }} • {{ p.name | uppercase }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel">
+          <app-sessions [patientId]="patientId()" />
+        </div>
+      }
+
+    </div>
+  </div>
+}
+}

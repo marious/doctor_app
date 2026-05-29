@@ -1,0 +1,15 @@
+@use 'styles/shared' as *;
+
+.action-cell { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+.btn-approve {
+  padding: 4px 12px; background: #c6f6d5; color: #276749;
+  border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+  &:hover { background: #9ae6b4; }
+}
+
+.btn-reject {
+  padding: 4px 12px; background: #fed7d7; color: #9b2c2c;
+  border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+  &:hover { background: #feb2b2; }
+}
