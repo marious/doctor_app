@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             AppointmentSeeder::class,
             PatientSessionSeeder::class,
             ClinicServiceCategorySeeder::class,
+            ArticleSeeder::class,
+            VideoSeeder::class,
         ]);
     }
 }

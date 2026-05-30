@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\PatientPrescriptionController;
 use App\Http\Controllers\Api\PatientSessionController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\ArticleController;
+use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\HydrationController;
 use App\Http\Controllers\Api\LoginController;
@@ -52,6 +53,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('home', [HomeController::class, 'index']);
+
         //--------------------------------------------------- Profile & Settings -------------------------------------------
         Route::prefix('profile')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
