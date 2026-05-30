@@ -9,8 +9,10 @@ class AppointmentQueryBuilder extends Builder
     // ─── Scopes ───────────────────────────────────────────────────────────────
     public function past()
     {
-        return $this->whereIn('status', ['completed', 'not_approved', 'cancelled'])
-            ->orWhere('appointment_date', '<', now()->toDateString());
+        return $this->where(function ($q) {
+            $q->whereIn('status', ['completed', 'not_approved', 'cancelled'])
+              ->orWhere('appointment_date', '<', now()->toDateString());
+        });
     }
 
     public function upcoming()
