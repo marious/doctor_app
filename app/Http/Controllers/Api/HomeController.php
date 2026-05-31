@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Modules\Advertisements\Models\Advertisement;
+use Modules\Advertisements\Resources\AdvertisementResource;
 use Modules\Appointments\Models\Appointment;
 use Modules\Appointments\Resources\AppointmentResource;
 use Modules\Articles\Models\Article;
@@ -33,6 +35,8 @@ class HomeController extends Controller
             ->upcoming()
             ->orderBy('appointment_date')
             ->first();
+
+        $ads = Advertisement::byNewest()->get();    
         
         return response()->json([
             'success' => true,
@@ -42,6 +46,7 @@ class HomeController extends Controller
                 'articles'      => ArticleResource::collection($articles),
                 'videos'        => VideoResource::collection($videos),
                 'appointment'   => AppointmentResource::make($appointment),
+                'ads'           => AdvertisementResource::collection($ads),
             ],
         ]);
     }
