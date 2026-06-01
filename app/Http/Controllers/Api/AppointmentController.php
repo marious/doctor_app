@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Appointments\Models\Appointment;
 use Modules\Appointments\Resources\AppointmentResource;
+use Modules\Prescriptions\Models\PatientPrescription;
+use Modules\Sessions\Models\PatientSession;
 
 class AppointmentController extends Controller
 {
@@ -60,12 +62,34 @@ class AppointmentController extends Controller
 
     /**
      * Appointment details screen — includes prescriptions and requested tests.
+     * Data is resolved from the matching clinical session (by patient + date);
+     * falls back to the appointment's own records when no session exists.
      */
     public function show(Appointment $appointment): JsonResponse
     {
         $this->authorizeOwnership($appointment);
 
-        $appointment->load(['doctor', 'clinic', 'prescriptions', 'requestedTests']);
+        $appointment->load(['doctor', 'clinic']);
+
+        $session = PatientSession::where('patient_id', $appointment->patient_id)
+            ->where('session_date', $appointment->appointment_date->toDateString())
+            ->first();
+
+        if ($session) {
+            $prescriptions = PatientPrescription::where('session_id', $session->id)->get();
+            $appointment->setRelation('prescriptions', $prescriptions);
+
+            $requestedTests = collect($session->required_lab_tests ?? [])
+                ->map(fn($name) => (object) [
+                    'id'        => null,
+                    'test_name' => $name,
+                    'type'      => 'lab',
+                    'status'    => 'pending',
+                ]);
+            $appointment->setRelation('requestedTests', $requestedTests);
+        } else {
+            $appointment->load(['prescriptions', 'requestedTests']);
+        }
 
         return response()->json([
             'success' => true,
