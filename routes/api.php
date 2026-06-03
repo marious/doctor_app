@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\PatientSessionController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\PatientMedicalReportsController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\HydrationController;
 use App\Http\Controllers\Api\LoginController;
@@ -203,6 +204,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::get('/', [PatientDirectoryController::class, 'index']);
                 Route::get('/{patient}', [PatientDirectoryController::class, 'show']);
                 Route::get('/{patient}/overview', PatientOverviewController::class);
+                Route::get('/{patient}/medical-reports', PatientMedicalReportsController::class);
                 Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
 
                 // Clinical sessions
