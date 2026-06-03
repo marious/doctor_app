@@ -33,6 +33,8 @@ class AppointmentController extends Controller
             ->orderBy('appointment_date')
             ->get();
 
+        $this->attachSessions($past->merge($upcoming), $patientId);
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -56,7 +58,7 @@ class AppointmentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Appointment request submitted successfully.',
-            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic'])),
+            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic', 'session'])),
         ], 201);
     }
 
@@ -72,8 +74,16 @@ class AppointmentController extends Controller
         $appointment->load(['doctor', 'clinic']);
 
         $session = PatientSession::where('patient_id', $appointment->patient_id)
-            ->where('session_date', $appointment->appointment_date->toDateString())
+            ->where(function ($q) use ($appointment) {
+                $q->where('appointment_id', $appointment->id)
+                  ->orWhere(fn($q2) => $q2
+                      ->whereNull('appointment_id')
+                      ->where('session_date', $appointment->appointment_date->toDateString())
+                  );
+            })
             ->first();
+
+        $appointment->setRelation('session', $session);
 
         if ($session) {
             $prescriptions = PatientPrescription::where('session_id', $session->id)->get();
@@ -141,7 +151,7 @@ class AppointmentController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('Appointment cancelled successfully.'),
-            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic'])),
+            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic', 'session'])),
         ]);
     }
 
@@ -171,7 +181,7 @@ class AppointmentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Appointment rescheduled successfully.',
-            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic'])),
+            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic', 'session'])),
         ]);
     }
 
@@ -212,6 +222,32 @@ class AppointmentController extends Controller
 
 
     // ─── Private Helpers ─────────────────────────────────────────────────────
+
+    private function attachSessions($appointments, int $patientId): void
+    {
+        if ($appointments->isEmpty()) return;
+
+        $sessions = PatientSession::where('patient_id', $patientId)
+            ->where(function ($q) use ($appointments) {
+                $q->whereIn('appointment_id', $appointments->pluck('id'))
+                  ->orWhere(fn($q2) => $q2
+                      ->whereNull('appointment_id')
+                      ->whereIn('session_date', $appointments->pluck('appointment_date')->map->toDateString()->unique())
+                  );
+            })
+            ->get();
+
+        $byAppointmentId = $sessions->whereNotNull('appointment_id')->keyBy('appointment_id');
+        $byDate          = $sessions->whereNull('appointment_id')->keyBy(fn($s) => $s->session_date->toDateString());
+
+        foreach ($appointments as $appointment) {
+            $appointment->setRelation(
+                'session',
+                $byAppointmentId->get($appointment->id)
+                    ?? $byDate->get($appointment->appointment_date->toDateString())
+            );
+        }
+    }
 
     private function authorizeOwnership(Appointment $appointment): void
     {

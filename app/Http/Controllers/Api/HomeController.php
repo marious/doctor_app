@@ -30,7 +30,7 @@ class HomeController extends Controller
             ->get();
 
         
-        $appointment = Appointment::with(['doctor', 'clinic'])
+        $appointment = Appointment::with(['doctor', 'clinic', 'session'])
             ->where('patient_id', auth()->id())
             ->upcoming()
             ->orderBy('appointment_date')

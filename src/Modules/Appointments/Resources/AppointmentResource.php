@@ -11,7 +11,8 @@ class AppointmentResource extends CustomResource
     public function data(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id'         => $this->id,
+            'session_id' => $this->whenLoaded('session', fn() => $this->session?->id, null),
             'service_type' => $this->service_type,
             'visit_type' => $this->service_type == 'pregnant' ? __('Pregnancy Care') : __('Gynecology Check-up'),
             'appointment_date' => $this->appointment_date?->toDateString(),

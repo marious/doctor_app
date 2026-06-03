@@ -168,7 +168,20 @@ class PatientSessionController extends Controller
             $labTests[] = $request->required_lab_tests_custom;
         }
 
+        $targetDate = $request->session_date ?? $session->session_date->toDateString();
+
+        $appointmentId = $session->appointment_id;
+
+        if (! $appointmentId || $request->filled('session_date')) {
+            $appointment = Appointment::where('patient_id', $patient->id)
+                ->where('appointment_date', $targetDate)
+                ->first();
+
+            $appointmentId = $appointment?->id ?? $appointmentId;
+        }
+
         $session->update(array_filter([
+            'appointment_id'           => $appointmentId,
             'session_date'             => $request->session_date,
             'visit_type'               => $request->visit_type,
             'session_status'           => $request->session_status,

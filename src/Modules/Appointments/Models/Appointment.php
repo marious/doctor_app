@@ -4,8 +4,10 @@ namespace Modules\Appointments\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Appointments\Builders\AppointmentQueryBuilder;
 use Modules\Core\Models\CustomModel;
+use Modules\Sessions\Models\PatientSession;
 use Modules\Users\Models\User;
 
 class Appointment extends CustomModel
@@ -53,6 +55,11 @@ class Appointment extends CustomModel
     public function clinic(): BelongsTo
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    public function session(): HasOne
+    {
+        return $this->hasOne(PatientSession::class);
     }
 
     public function prescriptions(): HasMany
