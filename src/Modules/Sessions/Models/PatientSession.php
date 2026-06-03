@@ -5,6 +5,7 @@ namespace Modules\Sessions\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Modules\Appointments\Models\Appointment;
 use Modules\Users\Models\User;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -18,7 +19,9 @@ class PatientSession extends Model implements HasMedia
     protected $fillable = [
         'patient_id',
         'doctor_id',
+        'appointment_id',
         'session_date',
+        'service_type',
         'visit_type',
         'session_status',
         'risk_status',
@@ -36,6 +39,7 @@ class PatientSession extends Model implements HasMedia
         'quick_notes',
         'medications',
         'follow_up_date',
+        'follow_up_time',
         'private_doctor_notes',
     ];
 
@@ -61,6 +65,11 @@ class PatientSession extends Model implements HasMedia
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
+    }
+
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class, 'appointment_id');
     }
 
     public function symptoms(): Attribute

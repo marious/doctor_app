@@ -8,6 +8,7 @@ use App\Http\Requests\Api\UpdatePatientSessionRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Modules\Appointments\Models\Appointment;
 use Modules\Sessions\Models\PatientSession;
 use Modules\Sessions\Resources\PatientSessionResource;
 use Modules\Users\Models\User;
@@ -22,6 +23,23 @@ class PatientSessionController extends Controller
     {
         abort_if($patient->role_id !== 2, 404);
 
+        // Resolve appointment: reuse an existing one on the session date, or create one
+        $appointment = Appointment::where('patient_id', $patient->id)
+            ->where('appointment_date', $request->session_date)
+            ->first();
+
+        if (! $appointment) {
+            $appointment = Appointment::create([
+                'patient_id'       => $patient->id,
+                'doctor_id'        => Auth::id(),
+                'service_type'     => $request->service_type,
+                'visit_type'       => 'new_visit',
+                'appointment_date' => $request->session_date,
+                'appointment_time' => '00:00',
+                'status'           => 'completed',
+            ]);
+        }
+
         // Merge custom lab test into the list if provided
         $labTests = $request->input('required_lab_tests', []);
 
@@ -32,7 +50,9 @@ class PatientSessionController extends Controller
         $session = PatientSession::create([
             'patient_id'               => $patient->id,
             'doctor_id'                => Auth::id(),
+            'appointment_id'           => $appointment->id,
             'session_date'             => $request->session_date,
+            'service_type'             => $request->service_type,
             'visit_type'               => $request->visit_type,
             'session_status'           => $request->session_status ?? 'completed',
             'risk_status'              => $request->risk_status,
@@ -50,6 +70,7 @@ class PatientSessionController extends Controller
             'quick_notes'              => $request->quick_notes,
             'medications'              => $request->medications,
             'follow_up_date'           => $request->follow_up_date,
+            'follow_up_time'           => $request->follow_up_time,
             'private_doctor_notes'     => $request->private_doctor_notes,
         ]);
 
@@ -70,6 +91,20 @@ class PatientSessionController extends Controller
         // Update patient's risk status if provided
         if ($request->filled('risk_status')) {
             $patient->update(['risk_status' => $request->risk_status]);
+        }
+
+        // Create a follow-up appointment if a follow_up_date was set
+        if ($request->filled('follow_up_date')) {
+            Appointment::create([
+                'patient_id'       => $patient->id,
+                'doctor_id'        => Auth::id(),
+                'service_type'     => $request->service_type,
+                'visit_type'       => 'appointment',
+                'appointment_date' => $request->follow_up_date,
+                'appointment_time' => $request->follow_up_time,
+                'status'           => 'confirmed',
+                'confirmed_at'     => now(),
+            ]);
         }
 
         return response()->json([
@@ -152,6 +187,7 @@ class PatientSessionController extends Controller
             'quick_notes'              => $request->quick_notes,
             'medications'              => $request->medications,
             'follow_up_date'           => $request->follow_up_date,
+            'follow_up_time'           => $request->follow_up_time,
             'private_doctor_notes'     => $request->private_doctor_notes,
         ], fn($v) => $v !== null));
 

@@ -51,6 +51,7 @@ class UpdatePatientSessionRequest extends FormRequest
             'quick_notes'          => ['nullable', 'string', 'max:2000'],
             'medications'          => ['nullable', 'string', 'max:1000'],
             'follow_up_date'       => ['nullable', 'date'],
+            'follow_up_time'       => ['required_with:follow_up_date', 'nullable', 'date_format:H:i'],
             'private_doctor_notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

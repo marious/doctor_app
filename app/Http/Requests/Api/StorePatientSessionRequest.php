@@ -10,7 +10,8 @@ class StorePatientSessionRequest extends FormRequest
     {
         return [
             // Basic Information
-            'session_date'  => ['required', 'date'],
+            'session_date'   => ['required', 'date'],
+            'service_type'   => ['required', 'in:pregnant,gynecology,general'],
             'visit_type'     => ['required', 'in:new_visit,follow_up,emergency,consultation'],
             'session_status' => ['nullable', 'in:completed,follow_up_required,in_progress'],
             'risk_status'    => ['nullable', 'in:stable,high_risk,monitor'],
@@ -51,6 +52,7 @@ class StorePatientSessionRequest extends FormRequest
             'quick_notes'         => ['nullable', 'string', 'max:2000'],
             'medications'         => ['nullable', 'string', 'max:1000'],
             'follow_up_date'      => ['nullable', 'date', 'after:session_date'],
+            'follow_up_time'      => ['required_with:follow_up_date', 'nullable', 'date_format:H:i'],
             'private_doctor_notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

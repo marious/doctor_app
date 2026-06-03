@@ -15,6 +15,7 @@ class PatientSessionResource extends CustomResource
             'session_date' => $this->session_date?->toDateString(),
             'session_status' => $this->session_status,
             'visit_type'   => $this->visit_type,
+            'service_type' => $this->service_type,
             'risk_status'  => $this->risk_status,
 
             'vital_signs' => [
@@ -65,6 +66,7 @@ class PatientSessionResource extends CustomResource
             ],
             'medications'          => $this->medications,
             'follow_up_date'       => $this->follow_up_date?->toDateString(),
+            'follow_up_time'       => $this->follow_up_time,
             'private_doctor_notes' => $this->private_doctor_notes,
 
             'created_at' => $this->created_at?->toDateTimeString(),
