@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
+use App\Http\Controllers\Api\DoctorReportsController;
 use App\Http\Controllers\Api\PatientDirectoryController;
 use App\Http\Controllers\Api\AssistantPatientSearchController;
 use App\Http\Controllers\Api\PatientFinancialTimelineController;
@@ -253,6 +254,12 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/', [ClinicServiceController::class, 'store']);
                 Route::post('/{service}', [ClinicServiceController::class, 'update']);
                 Route::delete('/{service}', [ClinicServiceController::class, 'destroy']);
+            });
+
+            //--------------------------------------------------- Reports & Analytics --------------------------------------------------
+            Route::prefix('reports')->group(function () {
+                Route::get('/', [DoctorReportsController::class, 'index']);
+                Route::get('/export', [DoctorReportsController::class, 'export']);
             });
 
             //--------------------------------------------------- Availability --------------------------------------------------
