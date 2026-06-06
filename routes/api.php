@@ -108,6 +108,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         //--------------------------------------------------- Appointments--------------------------------------------------
         Route::prefix('appointment')->group(function () {
+            // Available time slots for a date (must be before /{appointment} wildcard)
+            Route::get('/available-slots', [AppointmentController::class, 'availableSlots']);
             // List appointments (past + next upcoming)
             Route::get('/', [AppointmentController::class, 'index']);
             // Book a new appointment
@@ -120,8 +122,6 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::post('/{appointment}/cancel', [AppointmentController::class, 'cancel']);
             // Reschedule (Change appointment)
             Route::post('/{appointment}/reschedule', [AppointmentController::class, 'reschedule']);
-            // Available time slots for a doctor on a date
-            Route::get('/available-slots', [AppointmentController::class, 'availableSlots']);
         });
 
 

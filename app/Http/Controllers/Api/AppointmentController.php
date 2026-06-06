@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Appointments\Models\Appointment;
 use Modules\Appointments\Resources\AppointmentResource;
+use Modules\Availability\Models\DoctorAvailabilityDay;
 use Modules\Prescriptions\Models\PatientPrescription;
 use Modules\Sessions\Models\PatientSession;
 
@@ -186,36 +187,52 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Get available time slots for a doctor on a given date.
+     * Get available time slots for a given date.
+     * Reads real configured slots from DoctorAvailabilityDay and filters out booked ones.
      * Used by the booking screen time picker.
      */
     public function availableSlots(Request $request): JsonResponse
     {
         $request->validate([
-            'doctor_id' => ['required', 'exists:users,id'],
             'date' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
-        $allSlots = ['09:00', '10:30', '11:45', '14:00', '16:30'];
+        $date = $request->input('date');
 
-        $booked = Appointment::where('doctor_id', $request->doctor_id)
-            ->where('appointment_date', $request->date)
+        $day = DoctorAvailabilityDay::with('slots')
+            ->where('date', $date)
+            ->first();
+
+        $isAvailable = $day?->getAttribute('is_available') && $day->getAttribute('slots')->isNotEmpty();
+
+        if (!$isAvailable) {
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'date'            => $date,
+                    'is_available'    => false,
+                    'available_slots' => [],
+                    'booked_slots'    => [],
+                ],
+            ]);
+        }
+
+        $booked = Appointment::where('appointment_date', $date)
             ->whereNotIn('status', ['cancelled', 'not_approved'])
             ->pluck('appointment_time')
             ->map(fn($t) => substr($t, 0, 5))
             ->toArray();
 
-        $available = array_values(array_filter(
-            $allSlots,
-            fn($slot) => !in_array($slot, $booked)
-        ));
+        $allSlots  = $day->getAttribute('slots')->pluck('time')->map(fn($t) => substr($t, 0, 5))->toArray();
+        $available = array_values(array_diff($allSlots, $booked));
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'date' => $request->date,
+            'data'    => [
+                'date'            => $date,
+                'is_available'    => true,
                 'available_slots' => $available,
-                'booked_slots' => $booked,
+                'booked_slots'    => array_values(array_intersect($allSlots, $booked)),
             ],
         ]);
     }
