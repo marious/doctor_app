@@ -124,6 +124,6 @@ return [
     ],
 
     'otp_mode' => env('OTP_MODE', 'test'),
-    'doctor_name' => env('DOCTOR_NAME', 'DR. Sarah Jenkins'),
-    'clinic_name' => env('CLINIC_NAME', 'Fem Care Central Clinic'),
+    'doctor_name' => env('DOCTOR_NAME', 'DR. Marwa Sayed'),
+    'clinic_name' => env('CLINIC_NAME', 'Her Care Clinic'),
 ];

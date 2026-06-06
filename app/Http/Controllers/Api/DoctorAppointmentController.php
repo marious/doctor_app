@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DoctorRescheduleAppointmentRequest;
+use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,7 @@ use Modules\Appointments\Resources\DoctorAppointmentResource;
 
 class DoctorAppointmentController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     /**
      * GET /doctor/appointments
      * List all upcoming appointments for the authenticated doctor,
@@ -87,6 +89,8 @@ class DoctorAppointmentController extends Controller
             'confirmed_at' => now(),
         ]);
 
+        $this->fcm->sendAppointmentStatusChanged($appointment->patient, 'confirmed');
+
         return response()->json([
             'success' => true,
             'message' => __('Appointment approved successfully.'),
@@ -112,6 +116,8 @@ class DoctorAppointmentController extends Controller
             'status'       => 'not_approved',
             'cancelled_at' => now(),
         ]);
+
+        $this->fcm->sendAppointmentStatusChanged($appointment->patient, 'not_approved');
 
         return response()->json([
             'success' => true,
@@ -140,6 +146,12 @@ class DoctorAppointmentController extends Controller
             'status'           => 'confirmed',
             'confirmed_at'     => now(),
         ]);
+
+        $this->fcm->sendAppointmentRescheduled(
+            $appointment->patient,
+            $request->appointment_date,
+            substr($request->appointment_time, 0, 5)
+        );
 
         return response()->json([
             'success' => true,

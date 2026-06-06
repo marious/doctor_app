@@ -8,7 +8,8 @@ readonly class LoginDTO
         public string  $phoneOrEmail,
         public string  $password,
         public ?bool   $remember = false,
-        public ?string $deviceName = null
+        public ?string $deviceName = null,
+        public ?string $fcmToken = null,
     )
     {
     }
@@ -20,6 +21,7 @@ readonly class LoginDTO
             password: $request->password,
             remember: $request->remember,
             deviceName: $request->device_name,
+            fcmToken: $request->input('fcm_token'),
         );
     }
 }

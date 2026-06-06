@@ -33,9 +33,9 @@ class AuthService
         $user = Auth::user();
 
         if ($user) {
-            // For API logout - revoke all tokens
+            $user->update(['fcm_token' => null]);
+
             if (request()->expectsJson()) {
-//                $user->tokens()->delete();
                 $user->currentAccessToken()->delete();
             } else {
                 Auth::logout();
@@ -83,6 +83,11 @@ class AuthService
         $deviceName = $dto->deviceName ?? $this->generateDeviceName();
         $accessToken = $user->createToken($deviceName, ['*'], $expiresAt);
         $user->auth_token = $accessToken->plainTextToken;
+
+        if ($dto->fcmToken) {
+            $user->update(['fcm_token' => $dto->fcmToken]);
+        }
+
         return $user;
     }
 

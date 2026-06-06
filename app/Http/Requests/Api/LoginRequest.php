@@ -13,6 +13,7 @@ class LoginRequest extends FormRequest
             'password' => ['required', 'string'],
             'remember' => ['sometimes', 'boolean'],
             'device_name' => ['sometimes', 'string'],
+            'fcm_token' => ['sometimes', 'nullable', 'string'],
         ];
     }
 }

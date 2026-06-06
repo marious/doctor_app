@@ -57,6 +57,13 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('home', [HomeController::class, 'index']);
 
+        //--------------------------------------------------- Notifications -------------------------------------------
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\PatientNotificationController::class, 'index']);
+            Route::post('/read-all', [\App\Http\Controllers\Api\PatientNotificationController::class, 'markAllRead']);
+            Route::post('/{notification}/read', [\App\Http\Controllers\Api\PatientNotificationController::class, 'markRead']);
+        });
+
         //--------------------------------------------------- Profile & Settings -------------------------------------------
         Route::prefix('profile')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
