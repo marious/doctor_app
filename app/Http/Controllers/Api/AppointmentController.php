@@ -7,6 +7,7 @@ use App\Http\Requests\Api\StoreAppointmentRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\FcmService;
 use Modules\Appointments\Models\Appointment;
 use Modules\Appointments\Resources\AppointmentResource;
 use Modules\Availability\Models\DoctorAvailabilityDay;
@@ -15,6 +16,7 @@ use Modules\Sessions\Models\PatientSession;
 
 class AppointmentController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     /**
      * List appointments split into past and upcoming.
      */
@@ -53,13 +55,20 @@ class AppointmentController extends Controller
         $appointment = Appointment::create([
             ...$request->validated(),
             'patient_id' => Auth::id(),
-            'status' => 'pending',
+            'status'     => 'pending',
         ]);
+
+        $patient = Auth::user();
+        $this->fcm->sendAppointmentRequested(
+            $patient,
+            $appointment->getAttribute('appointment_date')->format('M d, Y'),
+            substr($appointment->getAttribute('appointment_time'), 0, 5)
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Appointment request submitted successfully.',
-            'data' => new AppointmentResource($appointment->load(['doctor', 'clinic', 'session'])),
+            'data'    => new AppointmentResource($appointment->load(['doctor', 'clinic', 'session'])),
         ], 201);
     }
 

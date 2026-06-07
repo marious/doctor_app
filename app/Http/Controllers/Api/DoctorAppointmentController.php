@@ -33,11 +33,11 @@ class DoctorAppointmentController extends Controller
             ->orderBy('appointment_time', 'DESC');
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', $request->input('status'));
         }
 
         if ($request->filled('date')) {
-            $query->where('appointment_date', $request->date);
+            $query->where('appointment_date', $request->input('date'));
         }
 
         $appointments = $query->paginate($request->integer('per_page', 500));
@@ -79,7 +79,7 @@ class DoctorAppointmentController extends Controller
         // $this->authorizeDoctor($appointment);
 
         abort_if(
-            !in_array($appointment->status, ['pending', 'under_review']),
+            !\in_array($appointment->getAttribute('status'), ['pending', 'under_review']),
             422,
             __('Only pending appointments can be approved.')
         );
@@ -89,7 +89,11 @@ class DoctorAppointmentController extends Controller
             'confirmed_at' => now(),
         ]);
 
-        $this->fcm->sendAppointmentStatusChanged($appointment->patient, 'confirmed');
+        $this->fcm->sendAppointmentApproved(
+            $appointment->getAttribute('patient'),
+            $appointment->getAttribute('appointment_date')->format('M d, Y'),
+            substr($appointment->getAttribute('appointment_time'), 0, 5)
+        );
 
         return response()->json([
             'success' => true,
@@ -107,7 +111,7 @@ class DoctorAppointmentController extends Controller
         // $this->authorizeDoctor($appointment);
 
         abort_if(
-            !in_array($appointment->status, ['pending', 'under_review']),
+            !\in_array($appointment->getAttribute('status'), ['pending', 'under_review']),
             422,
             __('Only pending appointments can be rejected.')
         );
@@ -117,7 +121,11 @@ class DoctorAppointmentController extends Controller
             'cancelled_at' => now(),
         ]);
 
-        $this->fcm->sendAppointmentStatusChanged($appointment->patient, 'not_approved');
+        $this->fcm->sendAppointmentDeclined(
+            $appointment->getAttribute('patient'),
+            $appointment->getAttribute('appointment_date')->format('M d, Y'),
+            substr($appointment->getAttribute('appointment_time'), 0, 5)
+        );
 
         return response()->json([
             'success' => true,
@@ -135,22 +143,22 @@ class DoctorAppointmentController extends Controller
         // $this->authorizeDoctor($appointment);
 
         abort_if(
-            in_array($appointment->status, ['completed', 'not_approved']),
+            \in_array($appointment->getAttribute('status'), ['completed', 'not_approved']),
             422,
             __('This appointment cannot be rescheduled.')
         );
 
         $appointment->update([
-            'appointment_date' => $request->appointment_date,
-            'appointment_time' => $request->appointment_time,
+            'appointment_date' => $request->input('appointment_date'),
+            'appointment_time' => $request->input('appointment_time'),
             'status'           => 'confirmed',
             'confirmed_at'     => now(),
         ]);
 
         $this->fcm->sendAppointmentRescheduled(
-            $appointment->patient,
-            $request->appointment_date,
-            substr($request->appointment_time, 0, 5)
+            $appointment->getAttribute('patient'),
+            $request->input('appointment_date'),
+            substr($request->input('appointment_time'), 0, 5)
         );
 
         return response()->json([

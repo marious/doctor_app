@@ -25,20 +25,36 @@ class FcmService
         );
     }
 
-    public function sendAppointmentStatusChanged(User $patient, string $status): void
+    public function sendAppointmentRequested(User $patient, string $date, string $time): void
     {
-        $labels = [
-            'confirmed'    => 'Your appointment has been confirmed.',
-            'not_approved' => 'Your appointment was not approved.',
-            'cancelled'    => 'Your appointment has been cancelled.',
-        ];
-
         $this->send(
             $patient,
             'appointment_reminders',
-            'Appointment Update',
-            $labels[$status] ?? 'Your appointment status has changed.',
-            ['type' => 'appointment_status', 'status' => $status]
+            'Appointment Request',
+            "Your appointment request for {$date} at {$time} is pending approval.",
+            ['type' => 'appointment_requested', 'date' => $date, 'time' => $time]
+        );
+    }
+
+    public function sendAppointmentApproved(User $patient, string $date, string $time): void
+    {
+        $this->send(
+            $patient,
+            'appointment_reminders',
+            'Appointment Approved',
+            "Your appointment on {$date} at {$time} has been approved.",
+            ['type' => 'appointment_approved', 'date' => $date, 'time' => $time]
+        );
+    }
+
+    public function sendAppointmentDeclined(User $patient, string $date, string $time): void
+    {
+        $this->send(
+            $patient,
+            'appointment_reminders',
+            'Appointment Declined',
+            "Your appointment on {$date} at {$time} has been declined.",
+            ['type' => 'appointment_declined', 'date' => $date, 'time' => $time]
         );
     }
 
@@ -69,24 +85,56 @@ class FcmService
         $this->send(
             $patient,
             'pregnancy_weekly_updates',
-            "Week {$week} Update",
-            "You are now {$week} weeks pregnant. Check your weekly update!",
+            'Weekly Update',
+            "You are now {$week} weeks pregnant!",
             ['type' => 'pregnancy_weekly_update', 'week' => (string) $week]
         );
     }
 
     public function sendPeriodAlert(User $patient, int $daysUntil): void
     {
-        $message = $daysUntil === 0
-            ? 'Your period is expected today.'
-            : "Your period is expected in {$daysUntil} " . ($daysUntil === 1 ? 'day.' : 'days.');
+        $body = match ($daysUntil) {
+            0       => 'Your period is expected today. Take care of yourself!',
+            1       => 'Your period starts tomorrow. Prepare your essentials!',
+            default => "Your period starts in {$daysUntil} days. Prepare your essentials!",
+        };
 
         $this->send(
             $patient,
             'period_alerts',
-            'Period Alert',
-            $message,
+            'Cycle Reminder',
+            $body,
             ['type' => 'period_alert', 'days_until' => (string) $daysUntil]
+        );
+    }
+
+    public function sendOvulationAlert(User $patient, int $daysUntil): void
+    {
+        $body = match ($daysUntil) {
+            0       => 'Your ovulation window starts today.',
+            1       => 'Your ovulation window starts tomorrow.',
+            default => "Your ovulation window starts in {$daysUntil} days.",
+        };
+
+        $this->send(
+            $patient,
+            'period_alerts',
+            'Ovulation Reminder',
+            $body,
+            ['type' => 'ovulation_alert', 'days_until' => (string) $daysUntil],
+            'fertility'
+        );
+    }
+
+    public function sendSymptomLogReminder(User $patient): void
+    {
+        $this->send(
+            $patient,
+            'push_notifications',
+            'Daily Symptom Log',
+            'Reminder to log your symptoms for today.',
+            ['type' => 'symptom_log_reminder'],
+            'symptoms'
         );
     }
 
@@ -105,7 +153,7 @@ class FcmService
         'push_notifications'      => 'general',
     ];
 
-    private function send(User $patient, string $settingKey, string $title, string $body, array $data = []): void
+    private function send(User $patient, string $settingKey, string $title, string $body, array $data = [], ?string $dbType = null): void
     {
         if (!$this->canNotify($patient, $settingKey)) {
             return;
@@ -114,7 +162,7 @@ class FcmService
         // Always persist to DB regardless of whether the device has a token
         PatientNotification::create([
             'patient_id' => $patient->getAttribute('id'),
-            'type'       => self::SETTING_TO_TYPE[$settingKey] ?? 'general',
+            'type'       => $dbType ?? self::SETTING_TO_TYPE[$settingKey] ?? 'general',
             'title'      => $title,
             'body'       => $body,
             'data'       => $data ?: null,
