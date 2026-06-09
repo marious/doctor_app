@@ -82,11 +82,12 @@ class AuthService
         $expiresAt = Carbon::now()->addDays(120);
         $deviceName = $dto->deviceName ?? $this->generateDeviceName();
         $accessToken = $user->createToken($deviceName, ['*'], $expiresAt);
-        $user->auth_token = $accessToken->plainTextToken;
 
         if ($dto->fcmToken) {
             $user->update(['fcm_token' => $dto->fcmToken]);
         }
+
+        $user->auth_token = $accessToken->plainTextToken;
 
         return $user;
     }

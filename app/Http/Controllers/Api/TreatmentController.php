@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Appointments\Models\Appointment;
 use Modules\Appointments\Models\Prescription;
 use Modules\Patient\Models\HydrationLog;
+use Modules\Prescriptions\Models\PatientPrescription;
+use Modules\Sessions\Models\PatientSession;
 use Modules\Treatments\Models\TreatmentLog;
 use Modules\Treatments\Resources\TreatmentResource;
 
@@ -41,45 +43,61 @@ class TreatmentController extends Controller
             __('You are not authorized to access this appointment.')
         );
 
-        $patientId = Auth::id();
-
-        $appointment->load(['prescriptions', 'requestedTests']);
-
-        // Today's hydration (auto-create empty record if first access today)
-        $hydration = HydrationLog::firstOrCreate(
-            ['patient_id' => $patientId, 'date' => today()->toDateString()],
-            ['cups_count' => 0]
-        );
-
-        // Next upcoming appointment for the follow-up section
-        $nextAppointment = Appointment::where('patient_id', $patientId)
-            ->where('id', '!=', $appointment->id)
-            ->whereIn('status', ['pending', 'under_review', 'confirmed'])
-            ->where('appointment_date', '>=', today())
-            ->orderBy('appointment_date')
+        // Resolve the clinical session linked to this appointment
+        $session = PatientSession::where('patient_id', $patientId)
+            ->where(function ($q) use ($appointment) {
+                $q->where('appointment_id', $appointment->id)
+                  ->orWhere(fn($q2) => $q2
+                      ->whereNull('appointment_id')
+                      ->where('session_date', $appointment->appointment_date->toDateString())
+                  );
+            })
             ->first();
 
-        // Prescriptions formatted for the UI
-        $medications = $appointment->prescriptions->map(fn($p) => [
-            'id'              => $p->id,
-            'medication_name' => $p->medication_name,
-            'dose_strength'   => $p->dose_strength,
-            'frequency'       => $this->dosageToFrequencyLabel($p->dosage),
-            'timing'          => $p->frequency, // stored in the frequency column
-            'duration_days'   => $p->duration_days,
-            'warning_note'    => $p->warning_note,
-        ]);
+        if ($session) {
+            $medications = PatientPrescription::where('session_id', $session->id)
+                ->get()
+                ->map(fn($p) => [
+                    'id'              => $p->id,
+                    'medication_name' => $p->medication_name,
+                    'dose_strength'   => $p->dosage,
+                    'frequency'       => PatientPrescription::$frequencyLabels[$p->frequency] ?? $p->frequency,
+                    'timing'          => null,
+                    'duration_days'   => $this->formatDuration($p->start_date, $p->end_date),
+                    'warning_note'    => $p->special_instructions,
+                ]);
 
-        // Split requested tests into lab tests and scans
-        $labTests = $appointment->requestedTests
-            ->where('type', 'lab')
-            ->pluck('test_name')
-            ->values();
+            $labTests = collect($session->required_lab_tests ?? [])->values();
+            $scans    = collect();
 
-        $scans = $appointment->requestedTests
-            ->where('type', 'scan')
-            ->pluck('test_name')
-            ->values();
+            $nextAppointmentDate = $session->follow_up_date?->toDateString();
+            $nextAppointmentTime = $session->follow_up_time;
+        } else {
+            $appointment->load(['prescriptions', 'requestedTests']);
+
+            $medications = $appointment->prescriptions->map(fn($p) => [
+                'id'              => $p->id,
+                'medication_name' => $p->medication_name,
+                'dose_strength'   => $p->dose_strength,
+                'frequency'       => $this->dosageToFrequencyLabel($p->dosage),
+                'timing'          => $p->frequency,
+                'duration_days'   => $p->duration_days,
+                'warning_note'    => $p->warning_note,
+            ]);
+
+            $labTests = $appointment->requestedTests->where('type', 'lab')->pluck('test_name')->values();
+            $scans    = $appointment->requestedTests->where('type', 'scan')->pluck('test_name')->values();
+
+            $next = Appointment::where('patient_id', $patientId)
+                ->where('id', '!=', $appointment->id)
+                ->whereIn('status', ['pending', 'under_review', 'confirmed'])
+                ->where('appointment_date', '>=', today())
+                ->orderBy('appointment_date')
+                ->first();
+
+            $nextAppointmentDate = $next?->appointment_date?->toDateString();
+            $nextAppointmentTime = $next?->appointment_time;
+        }
 
         return response()->json([
             'success' => true,
@@ -88,14 +106,18 @@ class TreatmentController extends Controller
                 'appointment_date' => $appointment->appointment_date?->toDateString(),
                 'doctor'           => config('app.doctor_name'),
                 'clinic'           => config('app.clinic_name'),
-                'diagnosis'        => $appointment->diagnosis,
-                'hydration'        => $this->formatHydration($hydration),
-                'prescribed_medications'    => $medications,
-                'additional_instructions'   => $appointment->additional_instructions ?? [],
+                'prescribed_medications'  => $medications,
+                'additional_instructions' => [
+                    __('Drink plenty of water (at least 2-3 liters daily).'),
+                    __('Avoid heavy physical effort and lifting for 48 hours.'),
+                    __('Follow a balanced diet rich in probiotics.'),
+                    __('If fever persists beyond 24h, contact the clinic immediately.'),
+                ],
                 'follow_up' => [
-                    'next_appointment'   => $nextAppointment?->appointment_date?->toDateString(),
-                    'required_lab_tests' => $labTests,
-                    'required_scans'     => $scans,
+                    'next_appointment'      => $nextAppointmentDate,
+                    'next_appointment_time' => $nextAppointmentTime,
+                    'required_lab_tests'    => $labTests,
+                    'required_scans'        => $scans,
                 ],
             ],
         ]);
@@ -234,20 +256,20 @@ class TreatmentController extends Controller
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
 
-    private function formatHydration(HydrationLog $log): array
+    private function formatDuration($startDate, $endDate): ?string
     {
-        $consumed = $log->cups_count * self::ML_PER_CUP;
-        $goal     = self::CUPS_GOAL * self::ML_PER_CUP;
+        if (! $startDate || ! $endDate) {
+            return null;
+        }
 
-        return [
-            'cups_completed'   => $log->cups_count,
-            'cups_goal'        => self::CUPS_GOAL,
-            'ml_consumed'      => $consumed,
-            'ml_goal'          => $goal,
-            'progress_percent' => $goal > 0 ? round(($consumed / $goal) * 100) : 0,
-            'goal_achieved'    => $log->cups_count >= self::CUPS_GOAL,
-            'date'             => $log->date->toDateString(),
-        ];
+        $days = (int) $startDate->diffInDays($endDate);
+
+        if ($days > 0 && $days % 7 === 0) {
+            $weeks = $days / 7;
+            return $weeks . ' ' . __($weeks === 1 ? 'week' : 'weeks');
+        }
+
+        return $days . ' ' . __($days === 1 ? 'day' : 'days');
     }
 
     private function dosageToFrequencyLabel(string $dosage): string
