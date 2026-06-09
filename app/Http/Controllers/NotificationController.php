@@ -1,13 +1,13 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Services\FCMService;
+use App\Services\FcmService;
+use Modules\Users\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class NotificationController extends Controller
 {
-    public function __construct(protected FCMService $fcm) {}
+    public function __construct(protected FcmService $fcm) {}
 
     public function sendTest(User $user): JsonResponse
     {
@@ -19,13 +19,13 @@ class NotificationController extends Controller
         }
 
         try {
-            $this->fcm->sendToDevice(
-                token: $user->fcm_token,
-                title: '🔔 Test Notification',
-                body: 'Hello ' . $user->name . '! Notifications are working correctly.',
-                data: [
-                    'type' => 'test',
-                    'user_id' => (string) $user->id,
+            $this->fcm->sendCustom(
+                $user,
+                'Test Notification',
+                'Hello ' . $user->name . '! Notifications are working correctly.',
+                [
+                    'type'      => 'test',
+                    'user_id'   => (string) $user->id,
                     'timestamp' => now()->toISOString(),
                 ]
             );
