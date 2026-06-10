@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Middleware\ValidateHeadersMiddleware;
 use Illuminate\Support\Facades\Route;
 
+Route::post('/v1/{patient}/dummy-notifications', \App\Http\Controllers\Api\DummyNotificationsController::class);
+
 Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(function () {
 
     Route::controller(OtpSendController::class)->prefix('otp')->group(function () {
