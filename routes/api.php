@@ -29,10 +29,13 @@ use App\Http\Controllers\Api\PatientTrackingController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\TrackerController;
 use App\Http\Controllers\Api\TreatmentController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\DoctorChatController;
 use App\Http\Middleware\ValidateHeadersMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/v1/{patient}/dummy-notifications', \App\Http\Controllers\Api\DummyNotificationsController::class);
+Route::post('/v1/{patient}/dummy-chat', \App\Http\Controllers\Api\DummyChatController::class);
 
 Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(function () {
 
@@ -155,6 +158,15 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::get('/{advertisement}', [AdvertisementController::class, 'show']);
         });
 
+        //--------------------------------------------------- Chat (patient) --------------------------------------------------
+        Route::prefix('chat/conversations')->group(function () {
+            Route::get('/', [ChatController::class, 'conversations']);
+            Route::post('/', [ChatController::class, 'startConversation']);
+            Route::get('/{conversation}/messages', [ChatController::class, 'messages']);
+            Route::post('/{conversation}/messages', [ChatController::class, 'sendMessage']);
+            Route::post('/{conversation}/read', [ChatController::class, 'markRead']);
+        });
+
         //--------------------------------------------------- Assistant --------------------------------------------------
         Route::middleware(['assistant'])->prefix('assistant')->group(function () {
 
@@ -182,6 +194,14 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::get('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'show']);
                 Route::delete('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'destroy']);
                 Route::post('/{serviceRegistration}/payments', [PatientServicePaymentController::class, 'store']);
+            });
+
+            // Chat
+            Route::prefix('chat/conversations')->group(function () {
+                Route::get('/', [DoctorChatController::class, 'conversations']);
+                Route::get('/{conversation}/messages', [DoctorChatController::class, 'messages']);
+                Route::post('/{conversation}/messages', [DoctorChatController::class, 'sendMessage']);
+                Route::post('/{conversation}/read', [DoctorChatController::class, 'markRead']);
             });
 
         });
@@ -279,6 +299,14 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::get('/calendar', [AvailabilityController::class, 'calendar']);
                 Route::get('/{date}', [AvailabilityController::class, 'show']);
                 Route::post('/{date}', [AvailabilityController::class, 'save']);
+            });
+
+            // Chat
+            Route::prefix('chat/conversations')->group(function () {
+                Route::get('/', [DoctorChatController::class, 'conversations']);
+                Route::get('/{conversation}/messages', [DoctorChatController::class, 'messages']);
+                Route::post('/{conversation}/messages', [DoctorChatController::class, 'sendMessage']);
+                Route::post('/{conversation}/read', [DoctorChatController::class, 'markRead']);
             });
         });
 

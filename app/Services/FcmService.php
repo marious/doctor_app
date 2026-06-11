@@ -143,6 +143,38 @@ class FcmService
         $this->send($patient, 'push_notifications', $title, $body, $data);
     }
 
+    /**
+     * Send a chat message push to any user (patient or staff).
+     * For patients it also persists to the notifications DB.
+     */
+    public function sendChatMessage(User $recipient, string $senderName, string $preview, int $conversationId): void
+    {
+        $data = ['type' => 'chat', 'conversation_id' => (string) $conversationId];
+
+        if ($recipient->getAttribute('role_id') === 2) {
+            // Patient — use the standard send pipeline (DB + FCM)
+            $this->send($recipient, 'push_notifications', $senderName, $preview, $data, 'chat');
+            return;
+        }
+
+        // Staff — FCM only, no patient_notifications record
+        $token = $recipient->getAttribute('fcm_token');
+        if (! $token) {
+            return;
+        }
+
+        try {
+            $message = CloudMessage::new()
+                ->withToken($token)
+                ->withNotification(Notification::create($senderName, $preview))
+                ->withData(array_map('strval', $data));
+
+            $this->messaging->send($message);
+        } catch (\Throwable) {
+            // Never fail the request if push fails
+        }
+    }
+
     // ─── Core sender ─────────────────────────────────────────────────────────
 
     private const SETTING_TO_TYPE = [
@@ -151,6 +183,7 @@ class FcmService
         'pregnancy_weekly_updates'=> 'pregnancy',
         'period_alerts'           => 'period',
         'push_notifications'      => 'general',
+        'chat'                    => 'chat',
     ];
 
     private function send(User $patient, string $settingKey, string $title, string $body, array $data = [], ?string $dbType = null): void
