@@ -101,6 +101,9 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::post('/tracker/log', [TreatmentController::class, 'logStatus']);
             // Active & past treatment list
             Route::get('/list', [TreatmentController::class, 'index']);
+            // Download prescription as PDF (must be before {appointment?} wildcard)
+            Route::get('/pdf', [TreatmentController::class, 'downloadPdf']);
+            Route::get('/{appointment}/pdf', [TreatmentController::class, 'downloadPdf']);
             // Treatment screen: omit ID to get latest appointment, or pass ID for a specific one
             Route::get('/{appointment?}', [TreatmentController::class, 'show']);
         });
