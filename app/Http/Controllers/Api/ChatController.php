@@ -19,11 +19,22 @@ class ChatController extends Controller
 
     /**
      * GET /v1/chat/conversations
-     * List the authenticated patient's conversations.
+     * Return all conversations for the patient.
+     * Auto-creates one conversation per staff member (doctor + assistants) if none exist yet.
      */
     public function conversations(): JsonResponse
     {
-        $conversations = Conversation::where('patient_id', Auth::id())
+        $patientId = Auth::id();
+
+        // Ensure a conversation exists with every staff member
+        User::whereIn('role_id', [1, 3])->each(function (User $staff) use ($patientId) {
+            Conversation::firstOrCreate([
+                'patient_id' => $patientId,
+                'staff_id'   => $staff->getAttribute('id'),
+            ]);
+        });
+
+        $conversations = Conversation::where('patient_id', $patientId)
             ->with(['staff:id,name,role_id', 'latestMessage'])
             ->orderByDesc('last_message_at')
             ->get();
@@ -31,30 +42,6 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $conversations->map(fn($c) => $this->formatConversation($c)),
-        ]);
-    }
-
-    /**
-     * POST /v1/chat/conversations
-     * Get or create a conversation with a staff member.
-     * Body: { staff_id?: int } — defaults to the clinic doctor (role_id = 1).
-     */
-    public function startConversation(Request $request): JsonResponse
-    {
-        $staffId = $request->input('staff_id')
-            ?? User::where('role_id', 1)->value('id');
-
-        abort_if(! $staffId, 422, 'No doctor found.');
-        abort_if(! User::whereIn('role_id', [1, 3])->where('id', $staffId)->exists(), 422, 'Invalid staff member.');
-
-        $conversation = Conversation::firstOrCreate([
-            'patient_id' => Auth::id(),
-            'staff_id'   => $staffId,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $this->formatConversation($conversation->load(['staff:id,name,role_id', 'latestMessage'])),
         ]);
     }
 

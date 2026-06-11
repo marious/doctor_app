@@ -161,7 +161,6 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         //--------------------------------------------------- Chat (patient) --------------------------------------------------
         Route::prefix('chat/conversations')->group(function () {
             Route::get('/', [ChatController::class, 'conversations']);
-            Route::post('/', [ChatController::class, 'startConversation']);
             Route::get('/{conversation}/messages', [ChatController::class, 'messages']);
             Route::post('/{conversation}/messages', [ChatController::class, 'sendMessage']);
             Route::post('/{conversation}/read', [ChatController::class, 'markRead']);
