@@ -35,7 +35,7 @@ class ChatController extends Controller
         });
 
         $conversations = Conversation::where('patient_id', $patientId)
-            ->with(['staff:id,name,role_id', 'latestMessage'])
+            ->with(['staff:id,name,role_id', 'staff.media', 'latestMessage'])
             ->orderByDesc('last_message_at')
             ->get();
 
@@ -151,9 +151,10 @@ class ChatController extends Controller
         return [
             'id'              => $c->id,
             'staff'           => [
-                'id'   => $c->staff?->id,
-                'name' => $c->staff?->name,
-                'role' => $c->staff?->role_id === 1 ? 'doctor' : 'assistant',
+                'id'     => $c->staff?->id,
+                'name'   => $c->staff?->name,
+                'role'   => $c->staff?->role_id === 1 ? 'doctor' : 'assistant',
+                'avatar' => $c->staff?->getFirstMediaUrl('avatar') ?: null,
             ],
             'last_message'    => $c->latestMessage ? $this->formatMessage($c->latestMessage) : null,
             'last_message_at' => $c->last_message_at?->toIso8601String(),

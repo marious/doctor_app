@@ -23,7 +23,7 @@ class DoctorChatController extends Controller
     public function conversations(): JsonResponse
     {
         $conversations = Conversation::where('staff_id', Auth::id())
-            ->with(['patient:id,name', 'latestMessage'])
+            ->with(['patient:id,name', 'patient.media', 'latestMessage'])
             ->withCount(['messages as unread_count' => fn($q) => $q
                 ->whereNot('sender_id', Auth::id())
                 ->whereNull('read_at')
@@ -137,15 +137,18 @@ class DoctorChatController extends Controller
 
     private function formatConversation(Conversation $c): array
     {
+        $patient = $c->getAttribute('patient');
+
         return [
-            'id'              => $c->id,
+            'id'              => $c->getAttribute('id'),
             'patient'         => [
-                'id'   => $c->patient?->id,
-                'name' => $c->patient?->name,
+                'id'     => $patient?->getAttribute('id'),
+                'name'   => $patient?->getAttribute('name'),
+                'avatar' => $patient?->getFirstMediaUrl('avatar') ?: null,
             ],
             'last_message'    => $c->latestMessage ? $this->formatMessage($c->latestMessage) : null,
-            'last_message_at' => $c->last_message_at?->toIso8601String(),
-            'unread_count'    => $c->unread_count,
+            'last_message_at' => $c->getAttribute('last_message_at')?->toIso8601String(),
+            'unread_count'    => $c->getAttribute('unread_count'),
         ];
     }
 
