@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\FcmService;
 use Modules\Appointments\Models\Appointment;
+use Modules\Users\Models\User;
 use Modules\Appointments\Resources\AppointmentResource;
 use Modules\Availability\Models\DoctorAvailabilityDay;
 use Modules\Prescriptions\Models\PatientPrescription;
@@ -58,12 +59,13 @@ class AppointmentController extends Controller
             'status'     => 'pending',
         ]);
 
-        $patient = Auth::user();
-        $this->fcm->sendAppointmentRequested(
-            $patient,
-            $appointment->getAttribute('appointment_date')->format('M d, Y'),
-            substr($appointment->getAttribute('appointment_time'), 0, 5)
-        );
+        /** @var User $patient */
+        $patient = User::findOrFail(Auth::id());
+        $date    = $appointment->getAttribute('appointment_date')->format('M d, Y');
+        $time    = substr($appointment->getAttribute('appointment_time'), 0, 5);
+
+        $this->fcm->sendAppointmentRequested($patient, $date, $time);
+        $this->fcm->notifyStaffNewAppointment($patient->getAttribute('name'), $date, $time);
 
         return response()->json([
             'success' => true,

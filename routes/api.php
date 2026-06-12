@@ -203,6 +203,10 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/{conversation}/read', [DoctorChatController::class, 'markRead']);
             });
 
+            // Notification settings
+            Route::get('/notification-settings', [\App\Http\Controllers\Api\DoctorNotificationSettingsController::class, 'show']);
+            Route::post('/notification-settings', [\App\Http\Controllers\Api\DoctorNotificationSettingsController::class, 'update']);
+
         });
 
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------
@@ -307,6 +311,10 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::post('/{conversation}/messages', [DoctorChatController::class, 'sendMessage']);
                 Route::post('/{conversation}/read', [DoctorChatController::class, 'markRead']);
             });
+
+            // Notification settings
+            Route::get('/notification-settings', [\App\Http\Controllers\Api\DoctorNotificationSettingsController::class, 'show']);
+            Route::post('/notification-settings', [\App\Http\Controllers\Api\DoctorNotificationSettingsController::class, 'update']);
         });
 
 

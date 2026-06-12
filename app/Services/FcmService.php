@@ -158,6 +158,11 @@ class FcmService
         }
 
         // Staff — FCM only, no patient_notifications record
+        $settings = $recipient->getAttribute('settings') ?? [];
+        if (! ($settings['new_patient_messages'] ?? true)) {
+            return;
+        }
+
         $token = $recipient->getAttribute('fcm_token');
         if (! $token) {
             return;
@@ -173,6 +178,40 @@ class FcmService
         } catch (\Throwable) {
             // Never fail the request if push fails
         }
+    }
+
+    /**
+     * Notify all doctors and assistants that a patient booked an appointment.
+     * Respects each staff member's new_appointment_alerts setting.
+     */
+    public function notifyStaffNewAppointment(string $patientName, string $date, string $time): void
+    {
+        User::whereIn('role_id', [1, 3])
+            ->whereNotNull('fcm_token')
+            ->each(function (User $staff) use ($patientName, $date, $time) {
+                $settings = $staff->getAttribute('settings') ?? [];
+                if (! ($settings['new_appointment_alerts'] ?? true)) {
+                    return;
+                }
+
+                try {
+                    $message = CloudMessage::new()
+                        ->withToken($staff->getAttribute('fcm_token'))
+                        ->withNotification(Notification::create(
+                            'New Appointment Request',
+                            "{$patientName} requested an appointment on {$date} at {$time}."
+                        ))
+                        ->withData([
+                            'type' => 'new_appointment',
+                            'date' => $date,
+                            'time' => $time,
+                        ]);
+
+                    $this->messaging->send($message);
+                } catch (\Throwable) {
+                    // Never fail the request if push fails
+                }
+            });
     }
 
     // ─── Core sender ─────────────────────────────────────────────────────────
