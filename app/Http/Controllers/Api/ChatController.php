@@ -82,9 +82,15 @@ class ChatController extends Controller
         abort_if($conversation->patient_id !== Auth::id(), 403);
 
         $request->validate([
-            'type' => ['required', 'in:text,image,audio'],
+            'type' => ['required', 'in:text,image,audio,file'],
             'body' => ['required_if:type,text', 'nullable', 'string', 'max:2000'],
-            'file' => ['required_unless:type,text', 'nullable', 'file', 'max:20480'],
+            'file' => [
+                'required_unless:type,text',
+                'nullable',
+                'file',
+                'max:20480',
+                'mimes:jpg,jpeg,png,gif,webp,mp3,m4a,ogg,wav,pdf,doc,docx,xls,xlsx',
+            ],
         ]);
 
         $filePath = null;
@@ -100,14 +106,20 @@ class ChatController extends Controller
         $message = Message::create([
             'conversation_id' => $conversation->id,
             'sender_id'       => Auth::id(),
-            'type'            => $request->type,
-            'body'            => $request->body,
+            'type'            => $request->input('type'),
+            'body'            => $request->input('body'),
             'file_path'       => $filePath,
         ]);
 
         $conversation->update(['last_message_at' => now()]);
 
-        $preview = $request->type === 'text' ? $request->body : ucfirst($request->type) . ' message';
+        $preview = match($request->input('type')) {
+            'text'  => $request->input('body'),
+            'image' => 'Sent an image',
+            'audio' => 'Sent a voice message',
+            'file'  => 'Sent a file',
+            default => 'New message',
+        };
         $this->fcm->sendChatMessage($conversation->staff, Auth::user()->name, $preview, $conversation->id);
 
         return response()->json([
