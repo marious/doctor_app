@@ -164,79 +164,27 @@ class TreatmentController extends Controller
             })
             ->first();
 
-        if ($session) {
-            $medications = PatientPrescription::where('session_id', $session->id)
-                ->get()
-                ->map(fn($p) => [
-                    'id'              => $p->id,
-                    'medication_name' => $p->medication_name,
-                    'dose_strength'   => $p->dosage,
-                    'frequency'       => PatientPrescription::$frequencyLabels[$p->frequency] ?? $p->frequency,
-                    'timing'          => null,
-                    'duration_days'   => $this->formatDuration($p->start_date, $p->end_date),
-                    'warning_note'    => $p->special_instructions,
-                ]);
+        $data = $this->buildPdfData($appointment, $session, $patientId);
 
-            $labTests = collect($session->required_lab_tests ?? [])->values();
-            $scans    = collect();
+        return $this->renderPdf($data, 'prescription-' . $appointment->id);
+    }
 
-            $nextAppointmentDate = $session->follow_up_date?->toDateString();
-            $nextAppointmentTime = $session->follow_up_time;
-        } else {
-            $appointment->load(['prescriptions', 'requestedTests']);
+    /**
+     * GET /treatment/session/{session}/pdf
+     * Download prescription PDF directly from a session ID.
+     */
+    public function downloadSessionPdf(PatientSession $session): \Symfony\Component\HttpFoundation\Response
+    {
+        abort_if($session->patient_id !== Auth::id(), 403, __('You are not authorized to access this session.'));
 
-            $medications = $appointment->prescriptions->map(fn($p) => [
-                'id'              => $p->id,
-                'medication_name' => $p->medication_name,
-                'dose_strength'   => $p->dose_strength,
-                'frequency'       => $this->dosageToFrequencyLabel($p->dosage),
-                'timing'          => $p->frequency,
-                'duration_days'   => $p->duration_days,
-                'warning_note'    => $p->warning_note,
-            ]);
-
-            $labTests = $appointment->requestedTests->where('type', 'lab')->pluck('test_name')->values();
-            $scans    = $appointment->requestedTests->where('type', 'scan')->pluck('test_name')->values();
-
-            $next = Appointment::where('patient_id', $patientId)
-                ->where('id', '!=', $appointment->id)
-                ->whereIn('status', ['pending', 'under_review', 'confirmed'])
-                ->where('appointment_date', '>=', today())
-                ->orderBy('appointment_date')
+        $appointment = $session->appointment
+            ?? Appointment::where('patient_id', Auth::id())
+                ->where('appointment_date', $session->session_date->toDateString())
                 ->first();
 
-            $nextAppointmentDate = $next?->appointment_date?->toDateString();
-            $nextAppointmentTime = $next?->appointment_time;
-        }
+        $data = $this->buildPdfData($appointment, $session, Auth::id());
 
-        $patient = Auth::user();
-
-        $pdf = Pdf::loadView('reports.prescription', [
-            'appointmentId'          => $appointment->id,
-            'appointmentDate'        => $appointment->appointment_date?->toDateString(),
-            'doctor'                 => config('app.doctor_name'),
-            'clinic'                 => config('app.clinic_name'),
-            'patientName'            => $patient->name ?? __('Patient'),
-            'generatedAt'            => now()->format('M d, Y'),
-            'medications'            => $medications,
-            'hasTiming'              => $medications->contains(fn($m) => ! empty($m['timing'])),
-            'additionalInstructions' => [
-                __('Drink plenty of water (at least 2-3 liters daily).'),
-                __('Avoid heavy physical effort and lifting for 48 hours.'),
-                __('Follow a balanced diet rich in probiotics.'),
-                __('If fever persists beyond 24h, contact the clinic immediately.'),
-            ],
-            'followUp' => [
-                'next_appointment'      => $nextAppointmentDate,
-                'next_appointment_time' => $nextAppointmentTime,
-                'required_lab_tests'    => $labTests,
-                'required_scans'        => $scans,
-            ],
-        ]);
-
-        $filename = 'prescription-' . $appointment->id . '-' . now()->format('Ymd') . '.pdf';
-
-        return $pdf->download($filename);
+        return $this->renderPdf($data, 'prescription-session-' . $session->id);
     }
 
     /**
@@ -371,6 +319,95 @@ class TreatmentController extends Controller
     }
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
+
+    private function buildPdfData(?Appointment $appointment, ?PatientSession $session, int $patientId): array
+    {
+        if ($session) {
+            $medications = PatientPrescription::where('session_id', $session->getAttribute('id'))
+                ->get()
+                ->map(fn($p) => [
+                    'id'              => $p->getAttribute('id'),
+                    'medication_name' => $p->getAttribute('medication_name'),
+                    'dose_strength'   => $p->getAttribute('dosage'),
+                    'frequency'       => PatientPrescription::$frequencyLabels[$p->getAttribute('frequency')] ?? $p->getAttribute('frequency'),
+                    'timing'          => null,
+                    'duration_days'   => $this->formatDuration($p->getAttribute('start_date'), $p->getAttribute('end_date')),
+                    'warning_note'    => $p->getAttribute('special_instructions'),
+                ]);
+
+            $labTests            = collect($session->getAttribute('required_lab_tests') ?? [])->values();
+            $scans               = collect();
+            $nextAppointmentDate = $session->getAttribute('follow_up_date')?->toDateString();
+            $nextAppointmentTime = $session->getAttribute('follow_up_time');
+        } else {
+            $appointment->load(['prescriptions', 'requestedTests']);
+
+            $medications = $appointment->prescriptions->map(fn($p) => [
+                'id'              => $p->id,
+                'medication_name' => $p->medication_name,
+                'dose_strength'   => $p->dose_strength,
+                'frequency'       => $this->dosageToFrequencyLabel($p->dosage),
+                'timing'          => $p->frequency,
+                'duration_days'   => $p->duration_days,
+                'warning_note'    => $p->warning_note,
+            ]);
+
+            $labTests = $appointment->requestedTests->where('type', 'lab')->pluck('test_name')->values();
+            $scans    = $appointment->requestedTests->where('type', 'scan')->pluck('test_name')->values();
+
+            $next = $appointment
+                ? Appointment::where('patient_id', $patientId)
+                    ->where('id', '!=', $appointment->getAttribute('id'))
+                    ->whereIn('status', ['pending', 'under_review', 'confirmed'])
+                    ->where('appointment_date', '>=', today())
+                    ->orderBy('appointment_date')
+                    ->first()
+                : null;
+
+            $nextAppointmentDate = $next?->getAttribute('appointment_date')?->toDateString();
+            $nextAppointmentTime = $next?->getAttribute('appointment_time');
+        }
+
+        return [
+            'appointmentId'   => $appointment?->getAttribute('id'),
+            'appointmentDate' => $appointment?->getAttribute('appointment_date')?->toDateString(),
+            'medications'     => $medications,
+            'labTests'        => $labTests,
+            'scans'           => $scans,
+            'nextDate'        => $nextAppointmentDate,
+            'nextTime'        => $nextAppointmentTime,
+        ];
+    }
+
+    private function renderPdf(array $data, string $filenamePrefix): \Symfony\Component\HttpFoundation\Response
+    {
+        $patient = Auth::user();
+
+        $pdf = Pdf::loadView('reports.prescription', [
+            'appointmentId'          => $data['appointmentId'],
+            'appointmentDate'        => $data['appointmentDate'],
+            'doctor'                 => config('app.doctor_name'),
+            'clinic'                 => config('app.clinic_name'),
+            'patientName'            => $patient->name ?? __('Patient'),
+            'generatedAt'            => now()->format('M d, Y'),
+            'medications'            => $data['medications'],
+            'hasTiming'              => $data['medications']->contains(fn($m) => ! empty($m['timing'])),
+            'additionalInstructions' => [
+                __('Drink plenty of water (at least 2-3 liters daily).'),
+                __('Avoid heavy physical effort and lifting for 48 hours.'),
+                __('Follow a balanced diet rich in probiotics.'),
+                __('If fever persists beyond 24h, contact the clinic immediately.'),
+            ],
+            'followUp' => [
+                'next_appointment'      => $data['nextDate'],
+                'next_appointment_time' => $data['nextTime'],
+                'required_lab_tests'    => $data['labTests'],
+                'required_scans'        => $data['scans'],
+            ],
+        ]);
+
+        return $pdf->download("{$filenamePrefix}-" . now()->format('Ymd') . '.pdf');
+    }
 
     private function formatDuration($startDate, $endDate): ?string
     {

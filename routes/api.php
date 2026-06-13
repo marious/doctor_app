@@ -107,6 +107,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             // Download prescription as PDF (must be before {appointment?} wildcard)
             Route::get('/pdf', [TreatmentController::class, 'downloadPdf']);
             Route::get('/{appointment}/pdf', [TreatmentController::class, 'downloadPdf']);
+            Route::get('/session/{session}/pdf', [TreatmentController::class, 'downloadSessionPdf']);
             // Treatment screen: omit ID to get latest appointment, or pass ID for a specific one
             Route::get('/{appointment?}', [TreatmentController::class, 'show']);
         });
