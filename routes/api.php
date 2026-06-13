@@ -243,8 +243,10 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             //--------------------------------------------------- Patient Directory --------------------------------------------------
             Route::prefix('patients')->group(function () {
                 Route::get('/', [PatientDirectoryController::class, 'index']);
+                Route::get('/export-pdf', [\App\Http\Controllers\Api\PatientExportController::class, 'all']);
                 Route::get('/{patient}', [PatientDirectoryController::class, 'show']);
                 Route::get('/{patient}/overview', PatientOverviewController::class);
+                Route::get('/{patient}/export-pdf', [\App\Http\Controllers\Api\PatientExportController::class, 'single']);
                 Route::get('/{patient}/medical-reports', PatientMedicalReportsController::class);
                 Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
 
