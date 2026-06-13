@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ClinicServiceCategorySeeder::class,
             ArticleSeeder::class,
             VideoSeeder::class,
+            PagesSeeder::class,
         ]);
     }
 }

@@ -212,6 +212,9 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------
         Route::middleware(['admin'])->prefix('doctor')->group(function() {
+            // Static pages management
+            Route::post('/pages/{slug}', [\App\Http\Controllers\Api\PageController::class, 'update']);
+
             // ── Staff management (create doctor / assistant accounts) ──────
             Route::get('/staff',           [StaffController::class, 'index']);
             Route::post('/staff',          [StaffController::class, 'store']);
