@@ -157,11 +157,19 @@ class FcmService
             return;
         }
 
-        // Staff — FCM only, no patient_notifications record
+        // Staff — check setting, always persist to DB, then try FCM
         $settings = $recipient->getAttribute('settings') ?? [];
         if (! ($settings['new_patient_messages'] ?? true)) {
             return;
         }
+
+        PatientNotification::create([
+            'patient_id' => $recipient->getAttribute('id'),
+            'type'       => 'chat',
+            'title'      => $senderName,
+            'body'       => $preview,
+            'data'       => $data,
+        ]);
 
         $token = $recipient->getAttribute('fcm_token');
         if (! $token) {
@@ -186,26 +194,35 @@ class FcmService
      */
     public function notifyStaffNewAppointment(string $patientName, string $date, string $time): void
     {
+        $title = 'New Appointment Request';
+        $body  = "{$patientName} requested an appointment on {$date} at {$time}.";
+        $data  = ['type' => 'new_appointment', 'date' => $date, 'time' => $time];
+
         User::whereIn('role_id', [1, 3])
-            ->whereNotNull('fcm_token')
-            ->each(function (User $staff) use ($patientName, $date, $time) {
+            ->each(function (User $staff) use ($title, $body, $data) {
                 $settings = $staff->getAttribute('settings') ?? [];
                 if (! ($settings['new_appointment_alerts'] ?? true)) {
                     return;
                 }
 
+                PatientNotification::create([
+                    'patient_id' => $staff->getAttribute('id'),
+                    'type'       => 'appointment',
+                    'title'      => $title,
+                    'body'       => $body,
+                    'data'       => $data,
+                ]);
+
+                $token = $staff->getAttribute('fcm_token');
+                if (! $token) {
+                    return;
+                }
+
                 try {
                     $message = CloudMessage::new()
-                        ->withToken($staff->getAttribute('fcm_token'))
-                        ->withNotification(Notification::create(
-                            'New Appointment Request',
-                            "{$patientName} requested an appointment on {$date} at {$time}."
-                        ))
-                        ->withData([
-                            'type' => 'new_appointment',
-                            'date' => $date,
-                            'time' => $time,
-                        ]);
+                        ->withToken($token)
+                        ->withNotification(Notification::create($title, $body))
+                        ->withData(array_map('strval', $data));
 
                     $this->messaging->send($message);
                 } catch (\Throwable) {
