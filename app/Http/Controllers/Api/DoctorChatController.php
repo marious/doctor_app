@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\Message;
+use Modules\Users\Models\User;
 
 class DoctorChatController extends Controller
 {
@@ -131,6 +132,44 @@ class DoctorChatController extends Controller
             ->update(['read_at' => now()]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * POST /v1/doctor/chat/with/{patient}
+     * POST /v1/assistant/chat/with/{patient}
+     * Find or create a conversation between the authenticated staff and the given patient.
+     * Returns the conversation + first page of messages so the UI can open the chat immediately.
+     */
+    public function openWith(User $patient): JsonResponse
+    {
+        abort_if($patient->getAttribute('role_id') !== 2, 404);
+
+        $conversation = Conversation::firstOrCreate(
+            ['staff_id' => Auth::id(), 'patient_id' => $patient->getAttribute('id')]
+        );
+
+        $conversation->load(['patient:id,name', 'patient.media', 'latestMessage']);
+        $conversation->loadCount(['messages as unread_count' => fn($q) => $q
+            ->whereNot('sender_id', Auth::id())
+            ->whereNull('read_at')
+        ]);
+
+        $messages = $conversation->messages()
+            ->with('sender:id,name,role_id')
+            ->orderByDesc('created_at')
+            ->paginate(30);
+
+        return response()->json([
+            'success'      => true,
+            'conversation' => $this->formatConversation($conversation),
+            'messages'     => $messages->map(fn($m) => $this->formatMessage($m)),
+            'meta'         => [
+                'current_page' => $messages->currentPage(),
+                'last_page'    => $messages->lastPage(),
+                'per_page'     => $messages->perPage(),
+                'total'        => $messages->total(),
+            ],
+        ]);
     }
 
     // ─── Private ──────────────────────────────────────────────────────────────

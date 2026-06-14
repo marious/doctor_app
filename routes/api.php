@@ -172,6 +172,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         //--------------------------------------------------- Assistant --------------------------------------------------
         Route::middleware(['assistant'])->prefix('assistant')->group(function () {
 
+            Route::post('/chat/with/{patient}', [DoctorChatController::class, 'openWith']);
+
             Route::prefix('appointments')->group(function () {
                 Route::get('/', [DoctorAppointmentController::class, 'index']);
                 Route::get('/{appointment}', [DoctorAppointmentController::class, 'show']);
@@ -214,7 +216,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------
         Route::middleware(['admin'])->prefix('doctor')->group(function() {
-            // Static pages management
+
+            Route::post('/chat/with/{patient}', [DoctorChatController::class, 'openWith']);
 
             // ── Staff management (create doctor / assistant accounts) ──────
             Route::get('/staff',           [StaffController::class, 'index']);
