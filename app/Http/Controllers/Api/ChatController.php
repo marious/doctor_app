@@ -154,7 +154,7 @@ class ChatController extends Controller
                 'id'     => $c->staff?->id,
                 'name'   => $c->staff?->name,
                 'role'   => $c->staff?->role_id === 1 ? 'doctor' : 'assistant',
-                'avatar' => $c->staff?->getFirstMediaUrl('avatar') ?: null,
+                'avatar' => $c->staff?->getLastMediaUrl('avatar') ?: null,
             ],
             'last_message'    => $c->latestMessage ? $this->formatMessage($c->latestMessage) : null,
             'last_message_at' => $c->last_message_at?->toIso8601String(),
