@@ -15,7 +15,7 @@ function guestGuard() {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isLoggedIn()) return true;
-  return router.createUrlTree(['/patients']);
+  return router.createUrlTree(['/dashboard']);
 }
 
 export const routes: Routes = [
@@ -29,7 +29,11 @@ export const routes: Routes = [
     component: LayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'patients', pathMatch: 'full' },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+      },
       {
         path: 'patients',
         loadComponent: () => import('./features/patients/patient-list/patient-list.component').then(m => m.PatientListComponent),

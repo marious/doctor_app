@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
+use App\Http\Controllers\Api\DoctorDashboardController;
 use App\Http\Controllers\Api\DoctorReportsController;
 use App\Http\Controllers\Api\PatientDirectoryController;
 use App\Http\Controllers\Api\AssistantPatientSearchController;
@@ -216,6 +217,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------
         Route::middleware(['admin'])->prefix('doctor')->group(function() {
+
+            Route::get('/dashboard', DoctorDashboardController::class);
 
             Route::post('/chat/with/{patient}', [DoctorChatController::class, 'openWith']);
 
