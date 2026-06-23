@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\BulkSaveAvailabilityRequest;
 use App\Http\Requests\Api\SaveAvailabilityRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,6 +74,45 @@ class AvailabilityController extends Controller
         return response()->json([
             'success' => true,
             'data'    => new AvailabilityDayResource($day),
+        ]);
+    }
+
+    /**
+     * POST /doctor/availability/bulk
+     * Save (or replace) configuration for multiple dates at once.
+     */
+    public function bulkSave(BulkSaveAvailabilityRequest $request): JsonResponse
+    {
+        $doctorId    = Auth::id();
+        $isAvailable = $request->boolean('is_available');
+        $slots       = collect($request->input('slots', []))->unique()->values();
+
+        $saved = [];
+
+        foreach ($request->input('dates') as $date) {
+            $day = DoctorAvailabilityDay::firstOrCreate(
+                ['doctor_id' => $doctorId, 'date' => $date],
+                ['is_available' => $isAvailable]
+            );
+
+            $day->update(['is_available' => $isAvailable]);
+
+            $day->slots()->delete();
+
+            if ($slots->isNotEmpty()) {
+                $day->slots()->createMany(
+                    $slots->map(fn($time) => ['availability_day_id' => $day->id, 'time' => $time])
+                );
+            }
+
+            $day->load('slots');
+            $saved[] = new AvailabilityDayResource($day);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Availability saved successfully.'),
+            'data'    => $saved,
         ]);
     }
 

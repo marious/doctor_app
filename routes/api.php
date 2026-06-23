@@ -313,6 +313,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             //--------------------------------------------------- Availability --------------------------------------------------
             Route::prefix('availability')->group(function () {
                 Route::get('/calendar', [AvailabilityController::class, 'calendar']);
+                Route::post('/bulk', [AvailabilityController::class, 'bulkSave']);
                 Route::get('/{date}', [AvailabilityController::class, 'show']);
                 Route::post('/{date}', [AvailabilityController::class, 'save']);
             });
