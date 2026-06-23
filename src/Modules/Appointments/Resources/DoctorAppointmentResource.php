@@ -20,7 +20,7 @@ class DoctorAppointmentResource extends CustomResource
             'date_label'       => $this->resolveDateLabel(),
             'appointment_date' => $this->appointment_date?->toDateString(),
             'appointment_time' => $this->appointment_time
-                ? Carbon::createFromFormat('H:i', $this->appointment_time)->format('h:i A')
+                ? Carbon::parse($this->appointment_time)->format('h:i A')
                 : null,
             'visit_type'       => $this->service_type === 'pregnant'
                 ? __('Pregnancy Care')
