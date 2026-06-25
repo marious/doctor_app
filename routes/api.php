@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DoctorAppointmentController;
+use App\Http\Controllers\Api\DoctorDashboardController;
 use App\Http\Controllers\Api\DoctorReportsController;
 use App\Http\Controllers\Api\PatientDirectoryController;
 use App\Http\Controllers\Api\AssistantPatientSearchController;
@@ -217,6 +218,8 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         //--------------------------------------------------- Doctor/Admin --------------------------------------------------
         Route::middleware(['admin'])->prefix('doctor')->group(function() {
 
+            Route::get('/dashboard', DoctorDashboardController::class);
+
             Route::post('/chat/with/{patient}', [DoctorChatController::class, 'openWith']);
 
             // ── Staff management (create doctor / assistant accounts) ──────
@@ -310,6 +313,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             //--------------------------------------------------- Availability --------------------------------------------------
             Route::prefix('availability')->group(function () {
                 Route::get('/calendar', [AvailabilityController::class, 'calendar']);
+                Route::post('/bulk', [AvailabilityController::class, 'bulkSave']);
                 Route::get('/{date}', [AvailabilityController::class, 'show']);
                 Route::post('/{date}', [AvailabilityController::class, 'save']);
             });

@@ -181,6 +181,30 @@ export interface ClinicService {
 
 export interface ServiceCategory { id: number; name: string; }
 
+// Dashboard
+export interface DashboardStats {
+  todays_appointments: number;
+  todays_appointments_pending: number;
+  high_risk_patients: number;
+  new_messages_today: number;
+  unread_messages: number;
+  total_patients: number;
+  new_patients_this_week: number;
+}
+
+export interface DashboardScheduleItem {
+  id: number;
+  patient: { id: number; name: string; avatar?: string | null };
+  time: string;
+  visit_type: string;
+  status: string;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  todays_schedule: DashboardScheduleItem[];
+}
+
 // Availability
 export interface AvailabilitySlot {
   start_time: string;

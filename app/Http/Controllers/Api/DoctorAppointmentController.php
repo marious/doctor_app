@@ -138,9 +138,9 @@ class DoctorAppointmentController extends Controller
         // $this->authorizeDoctor($appointment);
 
         abort_if(
-            !\in_array($appointment->getAttribute('status'), ['pending', 'under_review']),
+            !\in_array($appointment->getAttribute('status'), ['pending', 'under_review', 'confirmed', 'not_approved']),
             422,
-            __('Only pending appointments can be rejected.')
+            __('This Appointment Cannot Be Rejected')
         );
 
         $appointment->update([
