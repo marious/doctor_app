@@ -36,7 +36,15 @@ class ForgotPasswordController extends Controller
             ['token' => Hash::make($code), 'created_at' => now()],
         );
 
-        Mail::to($user->email)->send(new ResetPasswordMail($user, $code));
+        try {
+            Mail::to($user->email)->send(new ResetPasswordMail($user, $code));
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to send reset email. Please try again later.'),
+                'debug'   => app()->isLocal() ? $e->getMessage() : null,
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
