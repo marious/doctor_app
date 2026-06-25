@@ -22,9 +22,14 @@ class DoctorAppointmentController extends Controller
     public function index(Request $request): JsonResponse
     {
         $request->validate([
-            'status'   => ['nullable', 'in:pending,under_review,confirmed,not_approved,completed,cancelled'],
-            'date'     => ['nullable', 'date'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'status'       => ['nullable', 'in:pending,under_review,confirmed,not_approved,completed,cancelled'],
+            'date'         => ['nullable', 'date'],
+            'date_from'    => ['nullable', 'date'],
+            'date_to'      => ['nullable', 'date', 'after_or_equal:date_from'],
+            'service_type' => ['nullable', 'in:pregnant,gynecology'],
+            'visit_type'   => ['nullable', 'in:appointment,new_visit'],
+            'patient_name' => ['nullable', 'string', 'max:100'],
+            'per_page'     => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $query = Appointment::with('patient')
@@ -37,7 +42,29 @@ class DoctorAppointmentController extends Controller
         }
 
         if ($request->filled('date')) {
-            $query->where('appointment_date', $request->input('date'));
+            $query->whereDate('appointment_date', $request->input('date'));
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('appointment_date', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('appointment_date', '<=', $request->input('date_to'));
+        }
+
+        if ($request->filled('service_type')) {
+            $query->where('service_type', $request->input('service_type'));
+        }
+
+        if ($request->filled('visit_type')) {
+            $query->where('visit_type', $request->input('visit_type'));
+        }
+
+        if ($request->filled('patient_name')) {
+            $query->whereHas('patient', fn ($q) =>
+                $q->where('name', 'like', '%' . $request->input('patient_name') . '%')
+            );
         }
 
         $appointments = $query->paginate($request->integer('per_page', 500));
