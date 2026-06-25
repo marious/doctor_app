@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\PatientMedicalReportsController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\HydrationController;
+use App\Http\Controllers\Api\ForgotPasswordController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\OtpSendController;
 use App\Http\Controllers\Api\PatientTrackingController;
@@ -57,6 +58,11 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         Route::controller(LoginController::class)->group(function () {
             Route::post('login', 'login');
             Route::post('logout', 'logout')->middleware('auth:sanctum');
+        });
+
+        Route::controller(ForgotPasswordController::class)->group(function () {
+            Route::post('forgot-password', 'sendResetLink');
+            Route::post('reset-password', 'resetPassword');
         });
     });
 
