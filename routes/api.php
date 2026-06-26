@@ -42,28 +42,24 @@ Route::post('/v1/{patient}/dummy-chat', \App\Http\Controllers\Api\DummyChatContr
 Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(function () {
 
     Route::controller(OtpSendController::class)->prefix('otp')->group(function () {
-        Route::post('send', 'send');
-        Route::post('verify', 'verify');
-        Route::post('resend', 'resend');
+        Route::post('send',   [OtpSendController::class, 'send']);
+        Route::post('verify', [OtpSendController::class, 'verify']);
+        Route::post('resend', [OtpSendController::class, 'resend']);
     });
-
+    
     // General App Informational Pages
     Route::get('app-info', [\App\Http\Controllers\Api\AppInfoController::class, 'index']);
 
     Route::prefix('auth')->group(function () {
-        Route::controller(RegisterController::class)->group(function () {
-            Route::post('register', 'register');
-        });
 
-        Route::controller(LoginController::class)->group(function () {
-            Route::post('login', 'login');
-            Route::post('logout', 'logout')->middleware('auth:sanctum');
-        });
+        Route::post('register', [RegisterController::class, 'register']);
 
-        Route::controller(ForgotPasswordController::class)->group(function () {
-            Route::post('forgot-password', 'sendResetLink');
-            Route::post('reset-password', 'resetPassword');
-        });
+        Route::post('login',  [LoginController::class, 'login']);
+        Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
+
+        Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+        Route::post('reset-password',  [ForgotPasswordController::class, 'resetPassword']);
+
     });
 
     Route::middleware('auth:sanctum')->group(function () {
