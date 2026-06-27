@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Modules\LabResults\Models\PatientLabResult;
 use Modules\Sessions\Models\PatientSession;
 use Modules\Users\Models\User;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class PatientLabResultController extends Controller
 {
@@ -76,13 +77,32 @@ class PatientLabResultController extends Controller
 
     /**
      * DELETE /doctor/patients/{patient}/lab-results/{labResult}
-     * Delete a dedicated lab result upload (and its file).
+     * Delete a lab result — either a dedicated upload (integer ID) or a
+     * session-attached media file (prefixed "session_{media_id}").
      */
-    public function destroy(User $patient, PatientLabResult $labResult): JsonResponse
+    public function destroy(User $patient, string $labResult): JsonResponse
     {
-        abort_if($labResult->patient_id !== $patient->id, 404);
+        if (str_starts_with($labResult, 'session_')) {
+            $mediaId = (int) substr($labResult, strlen('session_'));
 
-        $labResult->delete();
+            $media = Media::findOrFail($mediaId);
+
+            // Ensure the media belongs to one of this patient's sessions
+            $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
+                && PatientSession::where('id', $media->model_id)
+                    ->where('patient_id', $patient->id)
+                    ->exists();
+
+            abort_if(! $ownerIsPatientSession, 404);
+
+            $media->delete();
+        } else {
+            $record = PatientLabResult::findOrFail($labResult);
+
+            abort_if($record->patient_id !== $patient->id, 404);
+
+            $record->delete();
+        }
 
         return response()->json([
             'success' => true,
