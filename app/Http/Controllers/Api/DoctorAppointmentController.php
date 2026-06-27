@@ -34,11 +34,13 @@ class DoctorAppointmentController extends Controller
 
         $query = Appointment::with('patient')
             // ->where('doctor_id', Auth::id())
-            ->orderBy('appointment_date', 'DESC')
-            ->orderBy('appointment_time', 'DESC');
+            ->orderBy('appointment_date', 'ASC')
+            ->orderBy('appointment_time', 'ASC');
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
+        } else {
+            $query->whereNotIn('status', ['completed', 'cancelled']);
         }
 
         if ($request->filled('date')) {
