@@ -63,6 +63,29 @@ class PatientServiceRegistrationController extends Controller
         $patient = User::findOrFail($request->patient_id);
         $service = ClinicService::findOrFail($request->service_id);
 
+        $existing = PatientServiceRegistration::where('patient_id', $request->patient_id)
+            ->where('service_id', $request->service_id)
+            ->whereDate('service_date', $request->service_date)
+            ->first();
+
+        if ($existing) {
+            if ((float) $request->amount_paid > 0) {
+                $existing->increment('amount_paid', (float) $request->amount_paid);
+
+                PatientServicePayment::create([
+                    'registration_id' => $existing->id,
+                    'amount'          => $request->amount_paid,
+                    'payment_date'    => now()->toDateString(),
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Payment added to existing registration.'),
+                'data'    => new PatientServiceRegistrationResource($existing->fresh()->load('registeredBy')),
+            ]);
+        }
+
         $registration = PatientServiceRegistration::create([
             'patient_id'       => $patient->id,
             'patient_name'     => $patient->name,
@@ -76,7 +99,6 @@ class PatientServiceRegistrationController extends Controller
             'registered_by'    => Auth::id(),
         ]);
 
-        // Record the initial payment as the first installment entry
         if ((float) $request->amount_paid > 0) {
             PatientServicePayment::create([
                 'registration_id' => $registration->id,
