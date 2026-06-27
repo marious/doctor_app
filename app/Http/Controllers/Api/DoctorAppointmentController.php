@@ -40,7 +40,7 @@ class DoctorAppointmentController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         } else {
-            $query->whereNotIn('status', ['completed', 'cancelled']);
+            $query->whereNotIn('status', ['completed', 'cancelled', 'not_approved']);
         }
 
         if ($request->filled('date')) {
