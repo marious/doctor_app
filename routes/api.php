@@ -173,7 +173,10 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         });
 
         //--------------------------------------------------- Assistant --------------------------------------------------
-        Route::middleware([])->prefix('assistant')->group(function () {
+                    // Patient financial timeline
+        Route::get('/assistant/patients/{patient}/financial-timeline', PatientFinancialTimelineController::class);
+
+        Route::middleware(['assistant'])->prefix('assistant')->group(function () {
 
             Route::post('/chat/with/{patient}', [DoctorChatController::class, 'openWith']);
 
@@ -191,8 +194,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             // Active services for registration form dropdown
             Route::get('/services', [ClinicServiceController::class, 'activeServices']);
 
-            // Patient financial timeline
-            Route::get('/patients/{patient}/financial-timeline', PatientFinancialTimelineController::class);
+
 
             // Service registrations & payments
             Route::prefix('service-registrations')->group(function () {
