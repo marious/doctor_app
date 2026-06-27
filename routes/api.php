@@ -173,7 +173,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
         });
 
         //--------------------------------------------------- Assistant --------------------------------------------------
-        Route::middleware(['assistant'])->prefix('assistant')->group(function () {
+        Route::middleware([])->prefix('assistant')->group(function () {
 
             Route::post('/chat/with/{patient}', [DoctorChatController::class, 'openWith']);
 
