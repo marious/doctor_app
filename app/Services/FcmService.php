@@ -147,9 +147,9 @@ class FcmService
      * Send a chat message push to any user (patient or staff).
      * For patients it also persists to the notifications DB.
      */
-    public function sendChatMessage(User $recipient, string $senderName, string $preview, int $conversationId): void
+    public function sendChatMessage(User $recipient, string $senderName, string $preview, int $conversationId, int|null $messageId = null): void
     {
-        $data = ['type' => 'chat', 'conversation_id' => (string) $conversationId];
+        $data = ['type' => 'chat', 'conversation_id' => (string) $conversationId, 'message_id' => $messageId];
 
         if ($recipient->getAttribute('role_id') === 2) {
             // Patient — use the standard send pipeline (DB + FCM)

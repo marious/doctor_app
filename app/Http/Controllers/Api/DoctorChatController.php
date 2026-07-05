@@ -110,7 +110,7 @@ class DoctorChatController extends Controller
             'file'  => 'Sent a file',
             default => 'New message',
         };
-        $this->fcm->sendChatMessage($conversation->patient, Auth::user()->name, $preview, $conversation->id);
+        $this->fcm->sendChatMessage($conversation->patient, Auth::user()->name, $preview, $conversation->id, $message->id);
 
         return response()->json([
             'success' => true,
