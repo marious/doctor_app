@@ -173,6 +173,7 @@ class ChatController extends Controller
             'file_url'    => $m->file_url,
             'read_at'     => $m->read_at?->toIso8601String(),
             'created_at'  => $m->created_at->toIso8601String(),
+            'is_delivered' => $m?->is_delivered,
         ];
     }
 }
