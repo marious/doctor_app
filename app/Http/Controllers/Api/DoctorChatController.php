@@ -172,6 +172,22 @@ class DoctorChatController extends Controller
         ]);
     }
 
+    public function markIsDelivered($messageId)
+    {
+        $message = Message::findOrFail($messageId);
+        Message::where('id', $message->id)
+            ->update(['read_at' => now(), 'is_delivered' => true]);
+
+        // send notification to sender user            
+        $this->fcm->sendCustom($message->sender, 'Notify Delivered', 'Message Delivered', [
+            'type' => 'notify_delivered',
+            'message_id' => $message->id,
+            'time' => now()->toISOString(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     // ─── Private ──────────────────────────────────────────────────────────────
 
     private function formatConversation(Conversation $c): array

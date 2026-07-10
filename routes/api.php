@@ -336,6 +336,6 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
 
         });
 
-
+        Route::post('/chat/delivered/{messageId}', [DoctorChatController::class, 'markIsDelivered']);
     });
 });

@@ -9,9 +9,9 @@ use Modules\Users\Models\User;
 
 class Message extends Model
 {
-    protected $fillable = ['conversation_id', 'sender_id', 'type', 'body', 'file_path', 'read_at'];
+    protected $fillable = ['conversation_id', 'sender_id', 'type', 'body', 'file_path', 'read_at', 'is_delivered'];
 
-    protected $casts = ['read_at' => 'datetime'];
+    protected $casts = ['read_at' => 'datetime', 'is_delivered' => 'boolean'];
 
     public function sender(): BelongsTo
     {
