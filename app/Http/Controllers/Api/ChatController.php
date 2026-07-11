@@ -120,7 +120,7 @@ class ChatController extends Controller
             'file'  => 'Sent a file',
             default => 'New message',
         };
-        $this->fcm->sendChatMessage($conversation->staff, Auth::user()->name, $preview, $conversation->id);
+        $this->fcm->sendChatMessage($conversation->staff, Auth::user()->name, $preview, $conversation->id, $message->id);
 
         return response()->json([
             'success' => true,
