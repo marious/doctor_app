@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Modules\PelvicExaminations\Models\PatientPelvicExamination;
 use Modules\Sessions\Models\PatientSession;
 use Modules\Users\Models\User;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class PatientPelvicExaminationController extends Controller
 {
@@ -76,11 +77,24 @@ class PatientPelvicExaminationController extends Controller
      * DELETE /doctor/patients/{patient}/pelvic-examinations/{pelvicExamination}
      * Delete a dedicated pelvic examination upload (and its file).
      */
-    public function destroy(User $patient, PatientPelvicExamination $pelvicExamination): JsonResponse
+    public function destroy(User $patient, $pelvicExamination): JsonResponse
     {
-        abort_if($pelvicExamination->patient_id !== $patient->id, 404);
+        $media = Media::find($pelvicExamination);
+        if ($media) {
+            $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
+                && PatientSession::where('id', $media->model_id)
+                    ->where('patient_id', $patient->id)
+                    ->exists();
+            abort_if(! $ownerIsPatientSession, 404);
+            $media->delete();
+        } else {
+            $record = $pelvicExamination::findOrFail($pelvicExamination);
+            abort_if($record->patient_id !== $patient->id, 404);
+            $record->delete();
+        }
+       
 
-        $pelvicExamination->delete();
+        // $pelvicExamination->delete();
 
         return response()->json([
             'success' => true,

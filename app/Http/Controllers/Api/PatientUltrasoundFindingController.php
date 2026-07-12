@@ -87,11 +87,8 @@ class PatientUltrasoundFindingController extends Controller
                 && PatientSession::where('id', $media->model_id)
                     ->where('patient_id', $patient->id)
                     ->exists();
-
             abort_if(! $ownerIsPatientSession, 404);
-
             $media->delete();
-
         } else {
             $record = PatientUltrasoundFinding::findOrFail($ultraSound);
             abort_if($record->patient_id !== $patient->id, 404);
