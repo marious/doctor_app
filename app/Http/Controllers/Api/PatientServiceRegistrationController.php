@@ -65,6 +65,7 @@ class PatientServiceRegistrationController extends Controller
 
         $existing = PatientServiceRegistration::where('patient_id', $request->patient_id)
             ->where('service_id', $request->service_id)
+            // ->whereDate('service_date', $request->service_date)
             ->whereColumn('amount_paid', '<', 'total_price')
             ->first();
 
