@@ -80,29 +80,38 @@ class PatientLabResultController extends Controller
      * Delete a lab result — either a dedicated upload (integer ID) or a
      * session-attached media file (prefixed "session_{media_id}").
      */
-    public function destroy(User $patient, string $labResult): JsonResponse
+    public function destroy(User $patient, $labResult): JsonResponse
     {
-        if (str_starts_with($labResult, 'session_')) {
-            $mediaId = (int) substr($labResult, strlen('session_'));
+        // if (str_starts_with($labResult, 'session_')) {
+            // $mediaId = (int) substr($labResult, strlen('session_'));
 
-            $media = Media::findOrFail($mediaId);
+            $media = Media::find($labResult);
+            if ($media) {
+                            // Ensure the media belongs to one of this patient's sessions
+                $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
+                    && PatientSession::where('id', $media->model_id)
+                        ->where('patient_id', $patient->id)
+                        ->exists();
 
-            // Ensure the media belongs to one of this patient's sessions
-            $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
-                && PatientSession::where('id', $media->model_id)
-                    ->where('patient_id', $patient->id)
-                    ->exists();
+                abort_if(! $ownerIsPatientSession, 404);
 
-            abort_if(! $ownerIsPatientSession, 404);
+                $media->delete();
+            } else {
+                $record = PatientLabResult::findOrFail($labResult);
 
-            $media->delete();
-        } else {
-            $record = PatientLabResult::findOrFail($labResult);
+                abort_if($record->patient_id !== $patient->id, 404);
 
-            abort_if($record->patient_id !== $patient->id, 404);
+                $record->delete();
+            }
 
-            $record->delete();
-        }
+
+        // } else {
+        //     $record = PatientLabResult::findOrFail($labResult);
+
+        //     abort_if($record->patient_id !== $patient->id, 404);
+
+        //     $record->delete();
+        // }
 
         return response()->json([
             'success' => true,
