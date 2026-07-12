@@ -88,7 +88,7 @@ class PatientPelvicExaminationController extends Controller
             abort_if(! $ownerIsPatientSession, 404);
             $media->delete();
         } else {
-            $record = $pelvicExamination::findOrFail($pelvicExamination);
+            $record = PatientPelvicExamination::findOrFail($pelvicExamination);
             abort_if($record->patient_id !== $patient->id, 404);
             $record->delete();
         }
