@@ -38,7 +38,9 @@ class PatientUltrasoundFindingController extends Controller
             ->get()
             ->flatMap(fn($s) => $s->getMedia('ultrasound_findings')->map(fn($m) => $this->formatSessionMedia($m, $s)));
 
-        $all = $dedicated->concat($fromSessions)->sortByDesc('created_at')->values();
+        $fromPatientUploads = $patient->getMedia('ultrasound_findings')->map(fn($m) => $this->formatPatientUpload($m));
+
+        $all = $dedicated->concat($fromSessions)->concat($fromPatientUploads)->sortByDesc('created_at')->values();
 
         return response()->json([
             'success' => true,
@@ -137,6 +139,19 @@ class PatientUltrasoundFindingController extends Controller
                          . ' — ' . $session->session_date?->format('M d, Y'),
             ],
             'source'     => 'session',
+            'created_at' => $media->created_at?->toDateTimeString(),
+        ];
+    }
+
+    private function formatPatientUpload($media): array
+    {
+        return [
+            'id'         => 'patient_' . $media->id,
+            'name'       => $media->name ?: $media->file_name,
+            'file_url'   => $media->getFullUrl(),
+            'file_name'  => $media->file_name,
+            'session'    => null,
+            'source'     => 'patient_upload',
             'created_at' => $media->created_at?->toDateTimeString(),
         ];
     }
