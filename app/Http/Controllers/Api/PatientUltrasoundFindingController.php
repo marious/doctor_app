@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Modules\Sessions\Models\PatientSession;
 use Modules\UltrasoundFindings\Models\PatientUltrasoundFinding;
 use Modules\Users\Models\User;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class PatientUltrasoundFindingController extends Controller
 {
@@ -76,11 +77,28 @@ class PatientUltrasoundFindingController extends Controller
      * DELETE /doctor/patients/{patient}/ultrasound-findings/{ultrasoundFinding}
      * Delete a dedicated ultrasound finding upload (and its file).
      */
-    public function destroy(User $patient, PatientUltrasoundFinding $ultrasoundFinding): JsonResponse
+    public function destroy(User $patient,  $ultraSound): JsonResponse
     {
-        abort_if($ultrasoundFinding->patient_id !== $patient->id, 404);
+        // abort_if($ultrasoundFinding->patient_id !== $patient->id, 404);
 
-        $ultrasoundFinding->delete();
+        $media = Media::find($ultraSound);
+        if ($media) {
+            $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
+                && PatientSession::where('id', $media->model_id)
+                    ->where('patient_id', $patient->id)
+                    ->exists();
+
+            abort_if(! $ownerIsPatientSession, 404);
+
+            $media->delete();
+
+        } else {
+            $record = PatientUltrasoundFinding::findOrFail($ultraSound);
+            abort_if($record->patient_id !== $patient->id, 404);
+            $record->delete();
+        }
+
+
 
         return response()->json([
             'success' => true,

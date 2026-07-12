@@ -82,9 +82,6 @@ class PatientLabResultController extends Controller
      */
     public function destroy(User $patient, $labResult): JsonResponse
     {
-        // if (str_starts_with($labResult, 'session_')) {
-            // $mediaId = (int) substr($labResult, strlen('session_'));
-
             $media = Media::find($labResult);
             if ($media) {
                             // Ensure the media belongs to one of this patient's sessions
@@ -103,15 +100,6 @@ class PatientLabResultController extends Controller
 
                 $record->delete();
             }
-
-
-        // } else {
-        //     $record = PatientLabResult::findOrFail($labResult);
-
-        //     abort_if($record->patient_id !== $patient->id, 404);
-
-        //     $record->delete();
-        // }
 
         return response()->json([
             'success' => true,
