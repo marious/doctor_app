@@ -100,6 +100,7 @@ class PatientUltrasoundFindingController extends Controller
             }
 
             abort_if(! $ownerIsPatientSession || !$patientFileExist, 404);
+            Log::info('hit');
             $media->delete();
         } else {
             $record = PatientUltrasoundFinding::findOrFail($ultraSound);
