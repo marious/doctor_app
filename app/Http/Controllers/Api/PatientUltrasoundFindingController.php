@@ -96,7 +96,7 @@ class PatientUltrasoundFindingController extends Controller
                 $patientFileExist = $media->where('model_id', $patient->id)
                     ->where('collection_name', 'ultrasound_findings')
                     ->exists();
-                Log::info('ffff: ', $patientFileExist)    ;
+                Log::info('ffff: ' . $patientFileExist ? 'yes' :'no')    ;
             }
 
             abort_if(! $ownerIsPatientSession || !$patientFileExist, 404);
