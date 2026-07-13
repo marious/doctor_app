@@ -79,6 +79,7 @@ class PatientOverviewController extends Controller
             'success' => true,
             'data' => [
                 'patient' => [
+                    'medical_history' => 'test',
                     'id'           => $patient->id,
                     'patient_code' => '#P-' . str_pad($patient->id, 3, '0', STR_PAD_LEFT),
                     'name'         => $patient->name,
