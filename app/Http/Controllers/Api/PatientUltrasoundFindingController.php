@@ -90,7 +90,17 @@ class PatientUltrasoundFindingController extends Controller
                 && PatientSession::where('id', $media->model_id)
                     ->where('patient_id', $patient->id)
                     ->exists();
-            abort_if(! $ownerIsPatientSession, 404);
+
+            $patientFileExist = false;    
+            // check if patient file
+            if (!$ownerIsPatientSession) {
+                $patientFileExist = $media->where('model_type', "Modules\Users\Models\User")
+                    ->where('model_id', $patient->id)
+                    ->where('collection_name', 'ultrasound_findings')
+                    ->exists();
+            }
+
+            abort_if(! $ownerIsPatientSession || !$patientFileExist, 404);
             $media->delete();
         } else {
             $record = PatientUltrasoundFinding::findOrFail($ultraSound);
