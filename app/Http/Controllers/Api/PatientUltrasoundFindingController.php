@@ -83,7 +83,6 @@ class PatientUltrasoundFindingController extends Controller
     public function destroy(User $patient,  $ultraSound): JsonResponse
     {
         // abort_if($ultrasoundFinding->patient_id !== $patient->id, 404);
-        Log::info('Hello: ' . $ultraSound);
         $media = Media::find($ultraSound);
         if ($media) {
             $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
@@ -94,10 +93,10 @@ class PatientUltrasoundFindingController extends Controller
             $patientFileExist = false;    
             // check if patient file
             if (!$ownerIsPatientSession) {
-                $patientFileExist = $media->where('model_type', "Modules\Users\Models\User")
-                    ->where('model_id', $patient->id)
+                $patientFileExist = $media->where('model_id', $patient->id)
                     ->where('collection_name', 'ultrasound_findings')
                     ->exists();
+                Log::info('ffff: ', $patientFileExist)    ;
             }
 
             abort_if(! $ownerIsPatientSession || !$patientFileExist, 404);
