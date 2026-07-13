@@ -30,6 +30,7 @@ class PatientOverviewController extends Controller
 
         $tracking = $patient->patientTracking;
         $latestStat = $tracking?->latestHealthStat;
+        // dd($latestStat);
         $isPregnancy = $tracking?->tracking_type === 'pregnancy';
 
         $latestSession = PatientSession::where('patient_id', $patient->id)
@@ -106,11 +107,11 @@ class PatientOverviewController extends Controller
                         'unit'   => 'mmHg',
                         'status' => $this->evaluateBp($latestSession->bp),
                     ] : null,
-                    'weight' => $latestStat?->weight_kg ? [
-                        'value'  => $latestStat->weight_kg,
+                    'weight' => ($latestStat?->weight_kg || $latestSession?->weight) ? [
+                        'value'  => $latestStat->weight_kg ?? $latestSession?->weight,
                         'unit'   => 'kg',
                         'change' => $this->weightChange($tracking),
-                        'status' => $latestStat->weight_status,
+                        'status' => $latestStat?->weight_status ?? null,
                     ] : null,
                     'heart_rate' => ($latestStat?->bpm || $latestSession?->hr) ? [
                         'value'  => $latestStat?->bpm ?? (int) $latestSession?->hr,
