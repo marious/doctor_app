@@ -30,7 +30,6 @@ class PatientOverviewController extends Controller
 
         $tracking = $patient->patientTracking;
         $latestStat = $tracking?->latestHealthStat;
-        // dd($latestStat);
         $isPregnancy = $tracking?->tracking_type === 'pregnancy';
 
         $latestSession = PatientSession::where('patient_id', $patient->id)
@@ -38,6 +37,14 @@ class PatientOverviewController extends Controller
             ->orderByDesc('session_date')
             ->first();
 
+        $previousSession = null;
+        if ($latestSession) {
+            $previousSession = PatientSession::where('patient_id', $patient->id)
+                ->where('id', '<', $latestSession->id)
+                ->orderByDesc('session_date')
+                ->first();    
+        }
+        
         $nextAppointment = Appointment::where('patient_id', $patient->id)
             ->whereIn('status', ['confirmed', 'pending'])
             ->where('appointment_date', '>=', today())
@@ -110,7 +117,7 @@ class PatientOverviewController extends Controller
                     'weight' => ($latestStat?->weight_kg || $latestSession?->weight) ? [
                         'value'  => $latestStat->weight_kg ?? $latestSession?->weight,
                         'unit'   => 'kg',
-                        'change' => $this->weightChange($tracking),
+                        'change' =>  $previousSession ? $this->weightChangePerSession($latestSession?->weight, $previousSession?->weight) : $this->weightChange($tracking),
                         'status' => $latestStat?->weight_status ?? null,
                     ] : null,
                     'heart_rate' => ($latestStat?->bpm || $latestSession?->hr) ? [
@@ -166,5 +173,14 @@ class PatientOverviewController extends Controller
         $change = round($stats->first()->weight_kg - $stats->last()->weight_kg, 1);
 
         return ($change >= 0 ? '+' : '') . $change;
+    }
+
+    private function weightChangePerSession($latestSessionWeight = null, $previousSessionWeight = null)
+    {
+        if ($latestSessionWeight && $previousSessionWeight) {
+            $change = round($latestSessionWeight - $previousSessionWeight, 1);
+            return ($change >= 0 ? '+' : '') . $change;
+        }
+        return null;
     }
 }
