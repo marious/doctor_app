@@ -118,7 +118,7 @@ class PatientOverviewController extends Controller
                         'value'  => $latestStat->weight_kg ?? $latestSession?->weight,
                         'unit'   => 'kg',
                         'change' =>  $previousSession ? $this->weightChangePerSession($latestSession?->weight, $previousSession?->weight) : $this->weightChange($tracking),
-                        'status' => $latestStat?->weight_status ?? null,
+                        'status' =>  $previousSession ? $this->weightChangePerSession($latestSession?->weight, $previousSession?->weight) : ($latestStat?->weight_status ?? null),
                     ] : null,
                     'heart_rate' => ($latestStat?->bpm || $latestSession?->hr) ? [
                         'value'  => $latestStat?->bpm ?? (int) $latestSession?->hr,
