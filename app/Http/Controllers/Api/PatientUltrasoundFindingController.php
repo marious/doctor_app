@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StorePatientUltrasoundFindingRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use Log;
 use Modules\Sessions\Models\PatientSession;
 use Modules\UltrasoundFindings\Models\PatientUltrasoundFinding;
 use Modules\Users\Models\User;
@@ -82,7 +83,7 @@ class PatientUltrasoundFindingController extends Controller
     public function destroy(User $patient,  $ultraSound): JsonResponse
     {
         // abort_if($ultrasoundFinding->patient_id !== $patient->id, 404);
-
+        Log::info('Hello: ' . $ultraSound);
         $media = Media::find($ultraSound);
         if ($media) {
             $ownerIsPatientSession = $media->model_type === (new PatientSession())->getMorphClass()
