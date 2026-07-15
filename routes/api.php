@@ -259,6 +259,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
                 Route::get('/{patient}/export-pdf', [\App\Http\Controllers\Api\PatientExportController::class, 'single']);
                 Route::get('/{patient}/medical-reports', PatientMedicalReportsController::class);
                 Route::patch('/{patient}/risk-status', [PatientDirectoryController::class, 'updateRiskStatus']);
+                Route::patch('/{patient}/allergies', [PatientDirectoryController::class, 'updateAllergies']);
 
                 // Clinical sessions
                 Route::get('/{patient}/sessions/dropdown', [PatientSessionController::class, 'dropdown']);

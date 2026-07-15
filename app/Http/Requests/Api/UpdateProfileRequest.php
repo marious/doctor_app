@@ -34,6 +34,8 @@ class UpdateProfileRequest extends FormRequest
             'husband_name' => ['nullable', 'string', 'max:255', 'required_if:marital_status,married'],
             'medical_history' => ['nullable', 'array'],
             'medical_history.*' => ['string'],
+            'allergies' => ['nullable', 'array'],
+            'allergies.*' => ['string'],
         ];
     }
 }

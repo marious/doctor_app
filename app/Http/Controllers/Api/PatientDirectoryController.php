@@ -102,4 +102,26 @@ class PatientDirectoryController extends Controller
             'data'    => new PatientDirectoryResource($patient->load(['patientTracking', 'lastCompletedAppointment'])),
         ]);
     }
+
+    /**
+     * PATCH /doctor/patients/{patient}/allergies
+     * Update the allergies list of a patient (doctor assessment).
+     */
+    public function updateAllergies(Request $request, User $patient): JsonResponse
+    {
+        abort_if($patient->role_id !== 2, 404);
+
+        $request->validate([
+            'allergies'   => ['nullable', 'array'],
+            'allergies.*' => ['string'],
+        ]);
+
+        $patient->update(['allergies' => $request->allergies]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Allergies updated successfully.'),
+            'data'    => new PatientProfileResource($patient->refresh()),
+        ]);
+    }
 }

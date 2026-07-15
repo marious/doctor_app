@@ -45,6 +45,7 @@ class UserResource extends CustomResource
                 'pelvic_examination' => MediaResource::collection($this->resource->getMedia('pelvic_examination')),
             ],
             'medical_history' => $this->resource->medical_history ?? [],
+            'allergies' => $this->resource->allergies ?? [],
             'additional_note' => 'Patient preferred communication via text. Has allergy to penicillin. Regular prenatal checkups since Week 8',
             'auth_token' => $this->resource->auth_token,
         ];
