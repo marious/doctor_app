@@ -90,6 +90,7 @@ class PatientOverviewController extends Controller
                     'phone'                 => $patient->phone,
                     'last_visit'            => $patient->lastCompletedAppointment?->appointment_date?->format('M d, Y'),
                     'medical_history'       => $patient->medical_history,
+                    'allergies'             => $patient?->allergies ?? [],
                     'next_appointment'      => $nextAppointment ? [
                         'date'              => $nextAppointment->appointment_date->toDateString(),
                         'formatted'         => $nextAppointment->appointment_date->format('M d, Y'),
