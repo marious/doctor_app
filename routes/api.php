@@ -200,6 +200,7 @@ Route::middleware(ValidateHeadersMiddleware::class)->prefix('v1')->group(functio
             Route::prefix('service-registrations')->group(function () {
                 Route::get('/', [PatientServiceRegistrationController::class, 'index']);
                 Route::post('/', [PatientServiceRegistrationController::class, 'store']);
+                Route::post('/preview', [PatientServiceRegistrationController::class, 'preview']);
                 Route::get('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'show']);
                 Route::delete('/{serviceRegistration}', [PatientServiceRegistrationController::class, 'destroy']);
                 Route::post('/{serviceRegistration}/payments', [PatientServicePaymentController::class, 'store']);

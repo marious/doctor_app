@@ -116,6 +116,55 @@ class PatientServiceRegistrationController extends Controller
     }
 
     /**
+     * POST /assistant/service-registrations/preview
+     * Same shape as store(), but nothing is persisted — for showing the
+     * user what would happen before they confirm.
+     */
+    public function preview(StorePatientServiceRegistrationRequest $request): JsonResponse
+    {
+        $patient = User::findOrFail($request->patient_id);
+        $service = ClinicService::findOrFail($request->service_id);
+
+        $existing = PatientServiceRegistration::where('patient_id', $request->patient_id)
+            ->where('service_id', $request->service_id)
+            ->whereColumn('amount_paid', '<', 'total_price')
+            ->first();
+
+        if ($existing) {
+            $preview = $existing->replicate();
+            $preview->id = $existing->id;
+            $preview->amount_paid = $existing->amount_paid + (float) $request->amount_paid;
+            $preview->setRelation('registeredBy', $existing->registeredBy);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Preview: payment would be added to existing registration.'),
+                'data'    => new PatientServiceRegistrationResource($preview),
+            ]);
+        }
+
+        $registration = new PatientServiceRegistration([
+            'patient_id'       => $patient->id,
+            'patient_name'     => $patient->name,
+            'patient_phone'    => $patient->phone,
+            'service_id'       => $service->id,
+            'service_name'     => $service->name,
+            'total_price'      => $service->price,
+            'service_date'     => $request->service_date,
+            'package_end_date' => $request->package_end_date,
+            'amount_paid'      => $request->amount_paid,
+            'registered_by'    => Auth::id(),
+        ]);
+        $registration->setRelation('registeredBy', Auth::user());
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Preview: registration data (not saved).'),
+            'data'    => new PatientServiceRegistrationResource($registration),
+        ]);
+    }
+
+    /**
      * DELETE /assistant/service-registrations/{registration}
      * Delete a service registration record.
      */
